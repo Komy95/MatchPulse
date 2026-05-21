@@ -8,10 +8,13 @@ Build a World-Cup-first friendly football prediction app with private groups, sc
 
 The app should later support regular leagues and Champions League, but the MVP must remain focused on FIFA World Cup 2026.
 
+MatchPulse is a mobile-first Progressive Web App first. It should feel like a premium iPhone app, not a desktop-first website. Desktop is supported responsively. Native iOS/Android packaging is post-MVP, with Capacitor selected as the preferred future App Store and Google Play path.
+
 ## Highest-priority product rules
 
 - Private groups, predictions, and leaderboards are the core product loop.
 - The signed-in dashboard is the command center for next locks, unfinished picks, group standings, global rank, news, insights, and simulator entry points.
+- The primary MVP experience is phone-based: invite link, authentication, group join, prediction entry, matchday return, leaderboard review, and optional add-to-home-screen.
 - AI insights are a presentation layer over structured, licensed football data, not a source of truth.
 - The simulator must support the FIFA World Cup 2026 format: 48 teams, 12 groups of four, top two plus eight best third-placed teams into the Round of 32.
 - The MVP should avoid paid entry pools, cash prizes, betting, wagering, or gambling-style monetization.
@@ -29,6 +32,7 @@ Use:
 - Cloud Firestore as the primary application database
 - Firestore Security Rules for client-readable data protection
 - Firebase Hosting or Firebase App Hosting for public hosting
+- Progressive Web App delivery for the MVP mobile app experience
 - Cloud Run for the Next.js full-stack runtime
 - Cloud Run Jobs for ingestion, scoring, AI refreshes, and simulations
 - Cloud Scheduler and Pub/Sub for scheduled and event-driven jobs
@@ -62,6 +66,8 @@ Use:
 - Avoid large unstructured prompt files. Keep prompts schema-bound and testable.
 - Every new API route needs validation, authorization, error handling, and tests.
 - Firestore document shapes must be designed around access patterns, query limits, and denormalized read models.
+- All UI work must follow `docs/DESIGN-PHILOSOPHY.md`: Apple-like clarity meets World Cup energy, mobile-first, calm, premium, readable, and free of betting/casino visual patterns.
+- Mobile/PWA work must follow `docs/MOBILE-APP-STRATEGY.md` and `docs/PWA-REQUIREMENTS.md`; native app packaging must remain post-MVP unless explicitly scoped, and the preferred future path is a Capacitor wrapper rather than fully native Swift/Kotlin.
 
 ## Domain rules
 

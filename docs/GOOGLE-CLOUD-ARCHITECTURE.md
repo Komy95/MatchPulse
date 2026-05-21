@@ -21,7 +21,7 @@ This document describes the target Google Cloud and Firebase deployment model fo
 
 ### Public Hosting
 
-Use Firebase Hosting or Firebase App Hosting as the public entry point.
+Use Firebase Hosting or Firebase App Hosting as the public entry point for the mobile-first PWA.
 
 Responsibilities:
 
@@ -29,6 +29,22 @@ Responsibilities:
 - Route dynamic app traffic to the Cloud Run service or managed App Hosting runtime.
 - Apply HTTPS and domain configuration.
 - Support preview channels or staging environments where practical.
+- Support PWA delivery for the installable mobile web app experience.
+- Preserve fast mobile loading for invite, onboarding, prediction, dashboard, and matchday routes.
+
+## Mobile-First PWA Delivery
+
+MatchPulse launches as a mobile-first Progressive Web App.
+
+Architecture implications:
+
+- The hosted web app must support installable PWA behavior in future implementation.
+- Static assets, app shell, and public reference data may be cached when freshness rules allow it.
+- Private predictions, private group data, auth-sensitive data, and live match data must not be aggressively cached.
+- Desktop is supported responsively but is not the primary delivery target.
+- Native iOS/Android packaging is post-MVP.
+
+See `docs/MOBILE-APP-STRATEGY.md` and `docs/PWA-REQUIREMENTS.md`.
 
 ### Cloud Run Service
 

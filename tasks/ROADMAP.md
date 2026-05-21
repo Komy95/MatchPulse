@@ -5,20 +5,24 @@ This roadmap is documentation guidance only. Do not create implementation files,
 ## Build Sequence
 
 1. **Firebase/GCP foundation**
-2. **Data abstraction**
-3. **Private groups**
-4. **Preferences and dashboard**
-5. **Predictions and leaderboards**
-6. **Team pages**
-7. **AI insights**
-8. **Tournament simulator**
-9. **Ads, consent, and compliance**
+2. **Mobile/PWA strategy and readiness**
+3. **Design-system documentation**
+4. **Data abstraction**
+5. **Private groups**
+6. **Preferences and dashboard**
+7. **Predictions and leaderboards**
+8. **Team pages**
+9. **AI insights**
+10. **Tournament simulator**
+11. **Ads, consent, and compliance**
 
 ## Phase Overview
 
 | Phase | Outcome | Future implementation areas |
 |---|---|---|
 | Firebase/GCP foundation | Working app shell, Firebase Auth, Firestore model, local emulators, Cloud Run-compatible runtime | `app/`, auth modules, Firestore docs/rules/indexes, env templates |
+| Mobile/PWA strategy and readiness | Mobile-first PWA requirements, installability plan, caching boundaries, native post-MVP guardrails, future Capacitor distribution decision | `docs/MOBILE-APP-STRATEGY.md`, `docs/PWA-REQUIREMENTS.md`, `docs/NATIVE-APP-ROADMAP.md` |
+| Design-system documentation | Visual direction, screen principles, color usage, spacing, typography, cards, forms, motion, accessibility | `docs/DESIGN-PHILOSOPHY.md`, UX docs |
 | Data abstraction | One canonical sports-data interface and Cloud Run Job ingestion plan | provider modules, ingestion jobs |
 | Private groups | Create and join pools with Firestore-backed membership | group API routes, group components, security rules |
 | Preferences and dashboard | Signed-in command center with next locks, picks, news, rank, insights, simulator shortcut | dashboard route, preference routes, news panels |
@@ -44,11 +48,42 @@ Future implementation should establish:
 - Initial Firestore Security Rules.
 - Initial Firestore index definitions based on implemented queries.
 - Cloud Run-compatible project structure.
+- PWA readiness plan for future manifest, app icon, theme color, standalone display mode, offline app shell, and safe caching boundaries.
 - Environment variable templates based on `templates/env.example`.
 - Local development documentation.
 - Staging and production Firebase/GCP project separation.
+- Native app packaging remains post-MVP and must not be scaffolded in Sprint 1.
+- Capacitor wrapper is the selected post-MVP / Phase 2 distribution path for Apple App Store and Google Play Store.
 
 Do not create these files during documentation-only work. This sprint describes future implementation.
+
+## Mobile/PWA Prerequisite
+
+Before Sprint 1 implementation, future work must use `docs/MOBILE-APP-STRATEGY.md` and `docs/PWA-REQUIREMENTS.md` to confirm:
+
+- MatchPulse launches as a mobile-first PWA.
+- The MVP should feel like a premium iPhone app.
+- Desktop is responsive support, not the primary design target.
+- Native iOS/Android packaging is post-MVP.
+- Capacitor wrapper is post-MVP / Phase 2.
+- Fully native Swift/Kotlin is out of scope unless traction or platform requirements justify it.
+- PWA installability is planned without creating native app files.
+- Public data caching has freshness metadata.
+- Private predictions, private group data, auth-sensitive data, and live match data are not aggressively cached.
+- Push notifications are deferred in Sprint 1 and MVP.
+- Install guidance uses soft education after activation, not blocking first-visit popups.
+
+## Design-System Documentation Prerequisite
+
+Before implementing UI screens or components, future implementation work must use `docs/DESIGN-PHILOSOPHY.md` as the visual source of truth.
+
+Required before UI implementation:
+
+- Confirm the design direction: Apple-like clarity meets World Cup energy.
+- Confirm the color usage rules.
+- Confirm mobile-first layout rules.
+- Confirm card, button, form, empty state, loading state, motion, and accessibility guidance.
+- Confirm no betting/casino visual patterns, generic fantasy sports clutter, or unlicensed FIFA/team assets.
 
 ## Sprint 2: Data Abstraction
 
