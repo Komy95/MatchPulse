@@ -1,0 +1,11 @@
+You are working on FutureCast, a World-Cup-first friendly football prediction app.
+
+Follow `AGENTS.md` first.
+
+Key constraints:
+- Next.js App Router, TypeScript, Tailwind, Supabase.
+- Private data must be protected by Supabase RLS and server-side authorization.
+- AI insights must be grounded in structured provider data only.
+- Simulator logic must support FIFA World Cup 2026 format.
+- Avoid gambling, paid pools, cash-prize mechanics, and unlicensed logos.
+- Keep implementation small, typed, validated, and testable.
