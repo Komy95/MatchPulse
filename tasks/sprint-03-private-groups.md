@@ -6,8 +6,8 @@ Users can create private groups, invite members, and manage basic settings.
 
 ## Tasks
 
-- Create group, member, and invite tables.
-- Add RLS policies for groups and memberships.
+- Create Firestore group, member, and invite document model.
+- Add Firestore Security Rules for group member reads.
 - Build create-group API route.
 - Build join-by-invite API route.
 - Build group detail page.

@@ -1,6 +1,6 @@
-# FutureCast AI World Cup Prediction App
+# MatchPulse AI World Cup Prediction App
 
-FutureCast is a web-first, friendly football prediction app for the FIFA World Cup 2026. The product focuses on private pools for friends, family, and office groups, supported by explainable AI match insights, useful team pages, and a transparent tournament simulator.
+MatchPulse is a web-first, friendly football prediction app for the FIFA World Cup 2026. The product focuses on private pools for friends, family, and office groups, supported by explainable AI match insights, useful team pages, personalized team news, a global leaderboard, and a transparent tournament simulator.
 
 ## Product positioning
 
@@ -20,10 +20,14 @@ Core value proposition:
 
 ## Recommended stack
 
-- **Frontend:** Next.js App Router, TypeScript, Tailwind
-- **Backend:** Next.js Route Handlers
-- **Database/Auth:** Supabase Auth, Postgres, Row Level Security
-- **Jobs:** Supabase Edge Functions or protected cron routes
+- **Frontend:** Next.js 15 App Router, TypeScript, Tailwind
+- **Backend:** Next.js Route Handlers on Cloud Run
+- **Auth:** Firebase Auth
+- **Database:** Cloud Firestore
+- **Security:** Firestore Security Rules plus server-side Cloud Run validation
+- **Jobs:** Cloud Run Jobs triggered by Cloud Scheduler and Pub/Sub
+- **Secrets:** Secret Manager
+- **Observability:** Cloud Logging and Error Reporting
 - **AI:** OpenAI Structured Outputs for schema-bound insight cards
 - **Data providers:** Sportmonks or API-Football as primary provider, football-data.org as fallback
 
@@ -35,7 +39,10 @@ Start with these files:
 - `docs/PRD.md` for product scope and user stories
 - `docs/ARCHITECTURE.md` for technical architecture
 - `docs/API-SPECS.md` for route contracts
-- `docs/DATABASE.md` for data model and RLS direction
+- `docs/FIRESTORE-DATA-MODEL.md` for Firestore data model direction
+- `docs/FIREBASE-SECURITY-RULES.md` for conceptual access-control behavior
+- `docs/GOOGLE-CLOUD-ARCHITECTURE.md` for deployment architecture
+- `docs/DEPLOYMENT.md` for deployment strategy
 - `docs/AI-INSIGHTS.md` for prompt/schema strategy
 - `docs/SIMULATOR.md` for model and simulation logic
 - `tasks/ROADMAP.md` for implementation order

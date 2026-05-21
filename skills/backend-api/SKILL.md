@@ -13,12 +13,12 @@ Build validated, authorized Next.js route handlers.
 
 - API contract from `docs/API-SPECS.md`
 - Domain logic in `lib/*`
-- Supabase session and RLS requirements
+- Firebase Auth session and Firestore Security Rules requirements
 
 ## Process
 
 1. Validate route params and request body.
-2. Load authenticated user where required.
+2. Verify Firebase Auth identity where required.
 3. Enforce authorization before reading private data.
 4. Delegate business logic to `lib/*`.
 5. Return stable JSON response and error shape.

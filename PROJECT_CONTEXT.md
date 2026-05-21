@@ -22,7 +22,7 @@ Regular leagues and Champions League can be supported later, but MVP implementat
 
 ### In Scope
 
-- Supabase-authenticated user profiles.
+- Firebase-authenticated user profiles.
 - Private groups with owner/admin/member roles.
 - Invite links or invite codes for joining groups.
 - Group settings for scoring preset, prediction mode, lock policy, booster availability, and prediction visibility.
@@ -81,22 +81,28 @@ Regular leagues and Champions League can be supported later, but MVP implementat
 
 ### Application Architecture
 
-- Use Next.js App Router.
+- Use Next.js 15 App Router.
 - Use TypeScript in strict mode.
 - Use Tailwind CSS for styling.
-- Use Supabase Auth for authentication.
-- Use Supabase Postgres as the system of record.
-- Use Supabase Row Level Security for private and mutable data.
+- Use Firebase Auth for authentication.
+- Use Cloud Firestore as the primary application database.
+- Use Firestore Security Rules for client-readable data protection.
+- Use Firebase Hosting or Firebase App Hosting for public hosting.
+- Use Cloud Run for the Next.js full-stack runtime.
+- Use Cloud Run Jobs for ingestion, scoring, AI refreshes, and simulations.
+- Use Cloud Scheduler and Pub/Sub for scheduled and event-driven jobs.
+- Use Secret Manager for API keys and secrets.
+- Use Cloud Logging and Error Reporting for observability.
 - Use server-side Next.js route handlers for authenticated writes.
 - Keep route handlers thin and move business logic into `lib/*`.
-- Use background jobs for ingestion, scoring, AI refreshes, and simulations.
 - Use OpenAI Structured Outputs for AI insight cards.
 
 ### Data Boundaries
 
 - Public reference data can be cached aggressively.
-- Private group data must be protected by both RLS and authenticated application routes.
+- Private group data must be protected by both Firestore Security Rules and authenticated application routes.
 - Mutable private operations must not be performed directly from unaudited client code.
+- Route handlers use Firebase Admin SDK server-side for privileged Firestore access.
 - Provider payloads must be normalized behind a provider interface.
 - UI components must not depend directly on sports-data vendor response shapes.
 - Provider freshness timestamps must be stored and surfaced where relevant.
@@ -131,9 +137,6 @@ lib/
   simulator/
   teams/
   validators/
-supabase/
-  migrations/
-  functions/
 docs/
 tasks/
 skills/
@@ -143,28 +146,26 @@ skills/
 
 Core entities:
 
-- `profiles`
-- `competitions`
-- `seasons`
-- `teams`
-- `matches`
-- `groups`
-- `group_members`
-- `group_invites`
-- `predictions`
-- `prediction_revisions`
-- `leaderboard_snapshots`
-- `global_leaderboard_snapshots`
-- `team_metric_snapshots`
-- `match_insights`
-- `user_preferences`
-- `news_items`
-- `news_sources`
-- `simulation_runs`
-- `simulation_team_probs`
-- `ad_slots`
+- `users/{userId}`
+- `groups/{groupId}`
+- `groups/{groupId}/members/{userId}`
+- `groups/{groupId}/invites/{inviteId}`
+- `groups/{groupId}/predictions/{predictionId}`
+- `groups/{groupId}/predictionRevisions/{revisionId}`
+- `groups/{groupId}/leaderboardSnapshots/{snapshotId}`
+- `competitions/{competitionId}`
+- `seasons/{seasonId}`
+- `teams/{teamId}`
+- `matches/{matchId}`
+- `teamMetricSnapshots/{snapshotId}`
+- `matchInsights/{matchId}`
+- `simulationRuns/{simulationId}`
+- `globalLeaderboardSnapshots/{snapshotId}`
+- `newsItems/{newsItemId}`
+- `newsSources/{sourceId}`
+- `adSlots/{slotId}`
 
-Private or mutable tables must have RLS enabled. Public reference tables can be anonymously readable. Service role writes should be reserved for provider data, scoring snapshots, AI outputs, and simulation results.
+Private or mutable documents must be protected by Firestore Security Rules and server-side Cloud Run validation. Public reference documents can be readable by everyone. Server-only writes should be reserved for provider data, scoring snapshots, AI outputs, simulation results, and news ingestion.
 
 ## API Baseline
 
@@ -209,7 +210,7 @@ All API responses should use stable JSON contracts. Errors should use this shape
 - Validate API boundaries with Zod or an equivalent schema library.
 - Keep route handlers thin.
 - Put business rules in `lib/*` domain services.
-- Enforce authorization in route handlers and database policies.
+- Enforce authorization in route handlers and Firestore Security Rules.
 - Use optimistic UI only where server validation can safely reject invalid state.
 - Use UTC for all kickoff and lock-time comparisons.
 - Avoid large unstructured prompt files.
@@ -220,8 +221,8 @@ All API responses should use stable JSON contracts. Errors should use this shape
 
 ## Delivery Sequence
 
-1. Foundation: app shell, auth, schema, RLS.
-2. Data abstraction: provider interface and normalized ingestion.
+1. Firebase/GCP foundation: app shell, Firebase Auth, Firestore model, security rules, local emulator plan, and Cloud Run-compatible runtime.
+2. Data abstraction: provider interface and Cloud Run Job-based normalized ingestion.
 3. Private groups: create, join, roles, invites.
 4. Preferences and personalized home: account setup preferences and team-news feed.
 5. Predictions and leaderboards: bulk upsert, lock checks, private scoring snapshots, global leaderboard snapshots.
@@ -236,7 +237,7 @@ All API responses should use stable JSON contracts. Errors should use this shape
 
 - Product name differs: the repository and agent instructions use `MatchPulse`, while `docs/PRD.md` names the product `FutureCast`. Implementation should use `MatchPulse` unless the product is intentionally renamed.
 - Route structure differs for team pages: `docs/ARCHITECTURE.md` places team pages under `app/(app)/teams/[teamId]/page.tsx`, while `tasks/ROADMAP.md` references `app/teams/[teamId]/page.tsx`.
-- Background job locations differ: architecture references Supabase functions, while the roadmap references `jobs/recalcLeaderboard.ts` and `workers/simulateTournament.ts`. Choose one execution model before building jobs.
+- Background job runtime is now Cloud Run Jobs triggered by Cloud Scheduler and Pub/Sub. Older job path references should be treated as historical and not implemented directly.
 - MVP surface count is described as five first-class surfaces, but the fifth combines team pages and simulator. Implementation planning should treat team pages and simulator as separate workstreams.
 - API docs include `GET /api/v1/groups/{groupId}/matches`, but the architecture route tree omits `groups/[groupId]/matches/route.ts`.
 - `predictionMode` values use `EXACT_SCORE` and `THREE_WAY`, while scoring presets include `1X2 only`. The naming should be normalized before schema work.
@@ -277,7 +278,7 @@ All API responses should use stable JSON contracts. Errors should use this shape
 
 - Gambling perception risk: prediction pools plus boosters can appear betting-adjacent. Avoid odds-led UI, paid entry, prizes, and gambling language.
 - Licensing risk: provider data, FIFA marks, and team crests require explicit rights. Use neutral team identifiers and licensed data only.
-- Privacy risk: private group data must be protected consistently at route, service, and RLS layers.
+- Privacy risk: private group data must be protected consistently at route, service, and Firestore Security Rules layers.
 - Global leaderboard privacy risk: public rankings can expose user activity across the app. Provide clear display-name controls and decide opt-out behavior early.
 - News licensing risk: team news cannot be copied wholesale from publishers. Use licensed content, compliant snippets, attribution, and links.
 - Personalization risk: team/news preferences are user profile data. Store only what is needed and make preferences editable.
@@ -287,7 +288,7 @@ All API responses should use stable JSON contracts. Errors should use this shape
 - Simulator credibility risk: probabilities are sensitive to model assumptions. Persist assumptions and make them visible.
 - Reproducibility risk: scoring, insights, and simulations need input hashes and version fields before results are generated.
 - Scope risk: league, Champions League, chat, notifications, premium plans, and white-label features should not displace the World Cup MVP.
-- Operational risk: the docs do not yet settle where jobs run. Ingestion, scoring, insights, and simulations need a concrete runtime before implementation.
+- Operational risk: Cloud Run Jobs, Scheduler, Pub/Sub topics, and Secret Manager access need concrete project configuration before implementation.
 
 ## Definition of Done
 

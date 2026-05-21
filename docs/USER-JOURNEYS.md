@@ -308,7 +308,7 @@ Create a private prediction group quickly and invite members.
 - Group settings validation.
 - Invite generation.
 - Owner membership creation.
-- RLS policies.
+- Firestore Security Rules.
 
 ### Acceptance Criteria
 
@@ -323,7 +323,7 @@ Create a private prediction group quickly and invite members.
 - Add group validation schema.
 - Implement invite creation.
 - Add group admin empty states.
-- Add tests for owner creation and RLS access.
+- Add tests for owner creation and Firestore access rules.
 
 ## 5. Join By Invite Journey
 

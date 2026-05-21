@@ -4,13 +4,14 @@ This file contains the main instructions for AI coding agents working in this re
 
 ## Project goal
 
-Build a World-Cup-first friendly football prediction app with private groups, score predictions, leaderboards, explainable AI match insights, team pages, and a transparent FIFA World Cup 2026 tournament simulator.
+Build a World-Cup-first friendly football prediction app with private groups, score predictions, leaderboards, explainable AI match insights, team pages, personalized team news, a global leaderboard, and a transparent FIFA World Cup 2026 tournament simulator.
 
 The app should later support regular leagues and Champions League, but the MVP must remain focused on FIFA World Cup 2026.
 
 ## Highest-priority product rules
 
 - Private groups, predictions, and leaderboards are the core product loop.
+- The signed-in dashboard is the command center for next locks, unfinished picks, group standings, global rank, news, insights, and simulator entry points.
 - AI insights are a presentation layer over structured, licensed football data, not a source of truth.
 - The simulator must support the FIFA World Cup 2026 format: 48 teams, 12 groups of four, top two plus eight best third-placed teams into the Round of 32.
 - The MVP should avoid paid entry pools, cash prizes, betting, wagering, or gambling-style monetization.
@@ -21,38 +22,46 @@ The app should later support regular leagues and Champions League, but the MVP m
 
 Use:
 
-- Next.js App Router
+- Next.js 15 App Router
 - TypeScript
 - Tailwind CSS
-- Supabase Auth
-- Supabase Postgres
-- Supabase Row Level Security
-- Server-side route handlers for authenticated writes
-- Background jobs for ingestion, scoring, AI refreshes, and simulations
+- Firebase Auth
+- Cloud Firestore as the primary application database
+- Firestore Security Rules for client-readable data protection
+- Firebase Hosting or Firebase App Hosting for public hosting
+- Cloud Run for the Next.js full-stack runtime
+- Cloud Run Jobs for ingestion, scoring, AI refreshes, and simulations
+- Cloud Scheduler and Pub/Sub for scheduled and event-driven jobs
+- Secret Manager for API keys and secrets
+- Cloud Logging and Error Reporting for observability
 - OpenAI Structured Outputs for AI insight cards
+- Sports data provider abstraction for Sportmonks, API-Football, and football-data.org
 
 ## Architecture rules
 
 - Public reference data can be cached aggressively.
-- Private group data must be protected by RLS and authenticated server routes.
+- Private group data must be protected by Firestore Security Rules and authenticated server routes.
 - Mutable private operations must never be performed directly from unaudited client code.
+- Client writes may support safe profile/preference updates, but prediction saves, group admin changes, scoring, AI refreshes, provider ingestion, and simulation execution require server-side validation.
+- Route handlers run in the Next.js server runtime on Cloud Run and use Firebase Admin SDK where privileged access is needed.
 - Provider data must be normalized behind a provider interface.
 - No UI component should depend directly on a specific sports-data vendor payload.
 - Store provider freshness timestamps and expose stale-data warnings where relevant.
-- Store AI outputs with input hash, model version, generated timestamp, expiry, and invalidation timestamp.
-- Simulations must be versioned by model version, input hash, assumptions, and run count.
+- Store AI outputs in Firestore with input hash, model version, generated timestamp, provider freshness, expiry, and invalidation timestamp.
+- Store simulations in Firestore with model version, input hash, assumptions, run count, generated timestamp, and visibility.
 
 ## Coding standards
 
 - Use strict TypeScript.
 - Prefer small, typed modules with clear domain boundaries.
 - Use Zod or equivalent schema validation at API boundaries.
-- Keep route handlers thin; move business logic into `lib/*`.
+- Keep route handlers thin; move business logic into domain modules.
 - Use optimistic UI only where server validation can safely reject invalid state.
 - All date comparisons for match locking must use UTC.
 - Do not assume local time for kickoff or lock logic.
 - Avoid large unstructured prompt files. Keep prompts schema-bound and testable.
 - Every new API route needs validation, authorization, error handling, and tests.
+- Firestore document shapes must be designed around access patterns, query limits, and denormalized read models.
 
 ## Domain rules
 
@@ -79,12 +88,14 @@ Use:
 ### Simulator
 
 - MVP model: Elo-informed independent Poisson.
-- Public simulation: precomputed and cached.
+- Public simulation: precomputed by Cloud Run Jobs and cached.
 - On-demand simulation: authenticated and stored for reuse.
 - Always persist model assumptions and model version.
 - Group-stage and knockout logic must be config-driven, not hard-coded in scattered UI logic.
 
 ## Recommended repository structure
+
+This is documentation guidance only. Do not scaffold implementation files unless a later implementation task explicitly asks for them.
 
 ```text
 app/
@@ -106,13 +117,12 @@ lib/
   auth/
   db/
   cache/
-supabase/
-  migrations/
-  functions/
 docs/
 tasks/
 skills/
 ```
+
+Google Cloud and Firebase configuration files must only be created during an explicit implementation task. Do not add `firebase.json`, `firestore.rules`, `firestore.indexes.json`, Cloud Run deployment files, or emulator configuration during documentation-only work.
 
 ## Definition of done
 

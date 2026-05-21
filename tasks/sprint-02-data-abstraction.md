@@ -10,8 +10,8 @@ Build the provider abstraction and normalized football data ingestion layer.
 - Add normalized team and match types.
 - Implement provider factory.
 - Add first provider adapter.
-- Create competition, season, team, and match migrations.
-- Build fixture ingestion job.
+- Define Firestore document shapes for competition, season, team, and match data.
+- Build fixture ingestion as a Cloud Run Job.
 - Store provider IDs and freshness timestamps.
 - Add idempotent upsert logic.
 
@@ -19,5 +19,5 @@ Build the provider abstraction and normalized football data ingestion layer.
 
 - Provider adapter returns normalized match objects.
 - Ingestion can be run repeatedly without duplicates.
-- Match and team records include provider metadata.
+- Match and team documents include provider metadata.
 - UI does not depend on provider-specific payloads.
