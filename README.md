@@ -1,49 +1,163 @@
-# MatchPulse AI World Cup Prediction App
+# MatchPulse
 
-MatchPulse is a web-first, friendly football prediction app for the FIFA World Cup 2026. The product focuses on private pools for friends, family, and office groups, supported by explainable AI match insights, useful team pages, personalized team news, a global leaderboard, and a transparent tournament simulator.
+MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-## Product positioning
+This repository is currently at Sprint 1 foundation: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, a basic app shell, and a health endpoint.
 
-Build this as a **World-Cup-first private prediction app**, not a generic tipping clone.
+## Current Scope
 
-Core value proposition:
+Implemented in Sprint 1 foundation:
 
-> A private, ad-supported World Cup prediction app for friends and family that combines picks, leaderboards, explainable AI match insights, rich team pages, and a transparent tournament simulator.
+- Next.js 15 App Router.
+- TypeScript strict mode.
+- Tailwind CSS.
+- Firebase client SDK helper.
+- Firebase Admin SDK helper.
+- Firebase Auth emulator configuration.
+- Firestore emulator configuration.
+- Environment variable parsing.
+- Basic mobile-first app shell.
+- Basic health endpoint at `/api/health`.
+- Basic authenticated user context helper.
+- Cloud Run-compatible standalone build configuration.
 
-## MVP priorities
+Not implemented yet:
 
-1. **Private groups, invites, predictions, and leaderboards**
-2. **Team pages with cached structured football data**
-3. **Explainable AI match insight cards**
-4. **Tournament simulation for World Cup 2026**
-5. **Ads, consent, attribution, and premium no-ads**
+- Private groups.
+- Predictions.
+- Leaderboards.
+- AI insights.
+- Simulator.
+- Sports-data ingestion.
+- Ads.
+- News.
+- Push notifications.
+- Capacitor or native app setup.
 
-## Recommended stack
+## Requirements
 
-- **Frontend:** Next.js 15 App Router, TypeScript, Tailwind
-- **Backend:** Next.js Route Handlers on Cloud Run
-- **Auth:** Firebase Auth
-- **Database:** Cloud Firestore
-- **Security:** Firestore Security Rules plus server-side Cloud Run validation
-- **Jobs:** Cloud Run Jobs triggered by Cloud Scheduler and Pub/Sub
-- **Secrets:** Secret Manager
-- **Observability:** Cloud Logging and Error Reporting
-- **AI:** OpenAI Structured Outputs for schema-bound insight cards
-- **Data providers:** Sportmonks or API-Football as primary provider, football-data.org as fallback
+- Node.js 20 or newer.
+- npm.
+- Java runtime for Firebase emulators.
 
-## Repository docs
+## Local Setup
 
-Start with these files:
+Install dependencies:
 
-- `AGENTS.md` for universal coding-agent instructions
-- `docs/PRD.md` for product scope and user stories
-- `docs/ARCHITECTURE.md` for technical architecture
-- `docs/API-SPECS.md` for route contracts
-- `docs/FIRESTORE-DATA-MODEL.md` for Firestore data model direction
-- `docs/FIREBASE-SECURITY-RULES.md` for conceptual access-control behavior
-- `docs/GOOGLE-CLOUD-ARCHITECTURE.md` for deployment architecture
-- `docs/DEPLOYMENT.md` for deployment strategy
-- `docs/AI-INSIGHTS.md` for prompt/schema strategy
-- `docs/SIMULATOR.md` for model and simulation logic
-- `tasks/ROADMAP.md` for implementation order
-- `skills/*/SKILL.md` for reusable AI-agent workflows
+```bash
+npm install
+```
+
+Create local environment file:
+
+```bash
+cp .env.local.example .env.local
+```
+
+The included example values target local emulator development and do not contain real secrets.
+The example also sets `FIREBASE_AUTH_EMULATOR_HOST` and `FIRESTORE_EMULATOR_HOST` so server-side Firebase Admin helpers use local emulators instead of production services.
+
+Start Firebase emulators:
+
+```bash
+npm run emulators
+```
+
+In another terminal, start the Next.js dev server:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Health check:
+
+```text
+http://localhost:3000/api/health
+```
+
+Firebase Emulator UI:
+
+```text
+http://localhost:4000
+```
+
+## Verification
+
+Run:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+## Environment Variables
+
+Use `.env.local.example` for local development and `templates/env.example` as the project-wide variable inventory.
+
+Rules:
+
+- Do not commit real secrets.
+- Only `NEXT_PUBLIC_*` variables may be exposed to browser code.
+- Use Firebase emulators for local Auth and Firestore development.
+- Use Secret Manager for deployed server secrets.
+- For deployed Firebase Admin SDK usage, prefer Application Default Credentials in the Cloud Run runtime.
+
+Optional local Firebase Admin SDK service account variables are supported by the helper but should only be used in untracked local environment files:
+
+```text
+FIREBASE_SERVICE_ACCOUNT_PROJECT_ID=
+FIREBASE_SERVICE_ACCOUNT_CLIENT_EMAIL=
+FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY=
+```
+
+## Project Structure
+
+```text
+app/
+  api/health/
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+lib/
+  auth/
+  cache/
+  firebase/
+  insights/
+  providers/
+  scoring/
+  simulator/
+public/
+docs/
+tasks/
+templates/
+```
+
+## Documentation
+
+Start with:
+
+- `AGENTS.md`
+- `PROJECT_CONTEXT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/FIRESTORE-DATA-MODEL.md`
+- `docs/FIREBASE-SECURITY-RULES.md`
+- `docs/MOBILE-APP-STRATEGY.md`
+- `docs/PWA-REQUIREMENTS.md`
+- `docs/DESIGN-PHILOSOPHY.md`
+- `tasks/ROADMAP.md`
+
+## Product Guardrails
+
+- FIFA World Cup 2026 first.
+- Mobile-first PWA first.
+- No betting, wagering, paid entry pools, or cash prizes.
+- No unlicensed FIFA marks, team crests, player photos, or copyrighted match photography.
+- No Supabase dependency.

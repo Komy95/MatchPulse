@@ -1,0 +1,26 @@
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "MatchPulse",
+  description: "A mobile-first World Cup 2026 prediction companion.",
+  applicationName: "MatchPulse",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1B4DFF",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className="font-sans antialiased">{children}</body>
+    </html>
+  );
+}
