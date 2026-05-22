@@ -10,7 +10,7 @@ export default function LoginPage() {
             <p className="text-sm font-medium text-worldCupBlue">MatchPulse account</p>
             <h1 className="text-4xl font-semibold">Sign in for your World Cup picks.</h1>
             <p className="text-base leading-7 text-secondaryText">
-              Your profile is created on first login and used for the private app experience.
+              Continue with Google to create a secure session and bootstrap your profile.
             </p>
           </div>
 

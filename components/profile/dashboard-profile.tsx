@@ -5,7 +5,6 @@ import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getFirebaseClientAuth, getFirebaseClientFirestore } from "@/lib/firebase/client";
-import { clearSessionCookie } from "@/lib/auth/session-cookie";
 import { updateUserProfile } from "@/lib/profile/client";
 import type { UserConsent, UserProfile } from "@/lib/profile/types";
 
@@ -75,8 +74,8 @@ export function DashboardProfile({ uid }: { uid: string }) {
   }
 
   async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
     await signOut(getFirebaseClientAuth());
-    clearSessionCookie();
     router.replace("/login");
     router.refresh();
   }

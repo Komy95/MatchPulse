@@ -10,8 +10,6 @@ import {
   type ReactNode,
 } from "react";
 import { getFirebaseClientAuth } from "@/lib/firebase/client";
-import { bootstrapUserProfile } from "@/lib/profile/client";
-import { clearSessionCookie, setSessionCookie } from "@/lib/auth/session-cookie";
 
 type AuthState = {
   user: User | null;
@@ -27,16 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(getFirebaseClientAuth(), async (nextUser) => {
       setUser(nextUser);
-
-      if (!nextUser) {
-        clearSessionCookie();
-        setLoading(false);
-        return;
-      }
-
-      const token = await nextUser.getIdToken();
-      setSessionCookie(token);
-      await bootstrapUserProfile(nextUser);
       setLoading(false);
     });
 

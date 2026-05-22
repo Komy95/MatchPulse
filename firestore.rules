@@ -10,6 +10,12 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function isActiveGroupMember(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.status == "ACTIVE";
+    }
+
     function userProfileFields() {
       return [
         "displayName",
@@ -22,6 +28,18 @@ service cloud.firestore {
         "globalLeaderboardOptIn",
         "consent",
         "createdAt",
+        "updatedAt"
+      ];
+    }
+
+    function userPreferenceFields() {
+      return [
+        "locale",
+        "countryCode",
+        "favoriteTeamIds",
+        "followedTeamIds",
+        "globalLeaderboardOptIn",
+        "consent",
         "updatedAt"
       ];
     }
@@ -64,9 +82,55 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
       allow update: if isSelf(userId)
         && validUserProfile(request.resource.data)
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(userPreferenceFields())
+        && request.resource.data.displayName == resource.data.displayName
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.photoUrl == resource.data.photoUrl
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
       allow delete: if false;
+    }
+
+    match /competitions/{competitionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /seasons/{seasonId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isActiveGroupMember(groupId);
+      allow write: if false;
+
+      match /members/{userId} {
+        allow read: if isActiveGroupMember(groupId);
+        allow write: if false;
+      }
+
+      match /seasons/{groupSeasonId} {
+        allow read: if isActiveGroupMember(groupId);
+        allow write: if false;
+
+        match /invites/{inviteId} {
+          allow read, write: if false;
+        }
+
+        match /predictions/{predictionId} {
+          allow read, write: if false;
+        }
+
+        match /predictionRevisions/{revisionId} {
+          allow read, write: if false;
+        }
+
+        match /leaderboardSnapshots/{snapshotId} {
+          allow read: if isActiveGroupMember(groupId);
+          allow write: if false;
+        }
+      }
     }
 
     match /{document=**} {

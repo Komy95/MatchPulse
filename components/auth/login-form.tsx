@@ -4,12 +4,11 @@ import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
+  type User,
 } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { getFirebaseClientAuth } from "@/lib/firebase/client";
-import { bootstrapUserProfile } from "@/lib/profile/client";
-import { setSessionCookie } from "@/lib/auth/session-cookie";
 
 export function LoginForm() {
   const router = useRouter();
@@ -20,10 +19,20 @@ export function LoginForm() {
   const [submitting, setSubmitting] = useState<"google" | "password" | null>(null);
   const nextPath = useMemo(() => searchParams.get("next") || "/dashboard", [searchParams]);
 
-  async function finishSignIn(user: Awaited<ReturnType<typeof signInWithPopup>>["user"]) {
+  async function finishSignIn(user: User) {
     const token = await user.getIdToken();
-    setSessionCookie(token);
-    await bootstrapUserProfile(user);
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ idToken: token }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to create a secure session.");
+    }
+
     router.replace(nextPath.startsWith("/") ? nextPath : "/dashboard");
     router.refresh();
   }
@@ -72,7 +81,7 @@ export function LoginForm() {
 
       <div className="flex items-center gap-3 text-xs text-secondaryText">
         <div className="h-px flex-1 bg-borderSoft" />
-        <span>Email sign-in</span>
+        <span>Local test fallback</span>
         <div className="h-px flex-1 bg-borderSoft" />
       </div>
 
