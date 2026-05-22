@@ -37,10 +37,20 @@ const checks = [
     includes: [
       "inviteCodes",
       "createReservedInvite",
-      "existingMember?.status === \"REMOVED\"",
+      "evaluateInviteJoinPolicy",
+      "transaction.get(registryRef)",
       "FieldValue.increment(1)",
     ],
-    excludes: [".collectionGroup(\"invites\")"],
+    excludes: [".collectionGroup(\"invites\")", ".collection(\"inviteCodes\").doc(code).get()"],
+  },
+  {
+    file: "lib/groups/join-policy.ts",
+    includes: [
+      "existingMember?.status === \"REMOVED\"",
+      "INVITE_EXPIRED",
+      "INVITE_REVOKED",
+      "incrementMemberCount: false",
+    ],
   },
   {
     file: "lib/env.ts",

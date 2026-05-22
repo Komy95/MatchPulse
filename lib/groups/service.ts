@@ -13,6 +13,7 @@ import {
   worldCup2026Season,
   worldCupCompetition,
 } from "@/lib/groups/constants";
+import { evaluateInviteJoinPolicy } from "@/lib/groups/join-policy";
 import type {
   GroupDashboardCard,
   GroupDocument,
@@ -263,64 +264,73 @@ export async function createGroupSeasonInvite(
 
 export async function joinGroupByInvite(code: string, user: AuthenticatedUserContext) {
   const firestore = getFirebaseAdminFirestore();
-  const inviteRegistrySnap = await firestore.collection("inviteCodes").doc(code).get();
 
-  if (!inviteRegistrySnap.exists) {
-    throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
-  }
+  const joinResult = await firestore.runTransaction(async (transaction) => {
+    const registryRef = firestore.collection("inviteCodes").doc(code);
+    const registrySnap = await transaction.get(registryRef);
 
-  const inviteRegistry = inviteRegistrySnap.data() as InviteCodeRegistryDocument;
-  const inviteDoc = await firestore
-    .collection("groups")
-    .doc(inviteRegistry.groupId)
-    .collection("seasons")
-    .doc(inviteRegistry.groupSeasonId)
-    .collection("invites")
-    .doc(inviteRegistry.inviteId)
-    .get();
-
-  if (!inviteDoc.exists) {
-    throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
-  }
-
-  const invite = inviteDoc.data() as GroupInviteDocument;
-  const now = Timestamp.now();
-
-  if (invite.revokedAt || inviteRegistry.revokedAt) {
-    throw new ApiError("INVITE_REVOKED", "Invite code is invalid.");
-  }
-
-  if (
-    invite.expiresAt.toMillis() <= now.toMillis() ||
-    inviteRegistry.expiresAt.toMillis() <= now.toMillis()
-  ) {
-    throw new ApiError("INVITE_EXPIRED", "Invite code is invalid.");
-  }
-
-  const groupRef = firestore.collection("groups").doc(invite.groupId);
-  const memberRef = groupRef.collection("members").doc(user.uid);
-
-  await firestore.runTransaction(async (transaction) => {
-    const [groupSnap, seasonSnap, memberSnap] = await Promise.all([
-      transaction.get(groupRef),
-      transaction.get(groupRef.collection("seasons").doc(invite.groupSeasonId)),
-      transaction.get(memberRef),
-    ]);
-
-    if (!groupSnap.exists || !seasonSnap.exists) {
+    if (!registrySnap.exists) {
       throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
     }
 
+    const registry = registrySnap.data() as InviteCodeRegistryDocument;
+    const groupRef = firestore.collection("groups").doc(registry.groupId);
+    const seasonRef = groupRef.collection("seasons").doc(registry.groupSeasonId);
+    const inviteRef = seasonRef.collection("invites").doc(registry.inviteId);
+    const memberRef = groupRef.collection("members").doc(user.uid);
+    const [inviteSnap, groupSnap, seasonSnap, memberSnap] = await Promise.all([
+      transaction.get(inviteRef),
+      transaction.get(groupRef),
+      transaction.get(seasonRef),
+      transaction.get(memberRef),
+    ]);
+    const invite = inviteSnap.exists ? (inviteSnap.data() as GroupInviteDocument) : null;
     const existingMember = memberSnap.exists
       ? (memberSnap.data() as GroupMemberDocument)
       : null;
+    const policy = evaluateInviteJoinPolicy({
+      code,
+      nowMs: Timestamp.now().toMillis(),
+      registry: {
+        code: registry.code,
+        groupId: registry.groupId,
+        groupSeasonId: registry.groupSeasonId,
+        inviteId: registry.inviteId,
+        expiresAtMs: registry.expiresAt.toMillis(),
+        revoked: Boolean(registry.revokedAt),
+      },
+      invite: invite
+        ? {
+            id: inviteSnap.id,
+            code: invite.code,
+            groupId: invite.groupId,
+            groupSeasonId: invite.groupSeasonId,
+            expiresAtMs: invite.expiresAt.toMillis(),
+            revoked: Boolean(invite.revokedAt),
+          }
+        : null,
+      groupExists: groupSnap.exists,
+      groupSeasonExists: seasonSnap.exists,
+      existingMember: existingMember
+        ? {
+            status: existingMember.status,
+            role: existingMember.role,
+          }
+        : null,
+    });
 
-    if (existingMember?.status === "ACTIVE") {
-      return;
+    if ("errorCode" in policy) {
+      throw new ApiError(policy.errorCode, "Invite code is invalid.");
     }
 
-    if (existingMember?.status === "REMOVED") {
-      throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
+    const result = {
+      groupId: registry.groupId,
+      groupSeasonId: registry.groupSeasonId,
+      role: policy.role,
+    };
+
+    if (policy.action === "NOOP_ACTIVE") {
+      return result;
     }
 
     transaction.set(
@@ -340,19 +350,17 @@ export async function joinGroupByInvite(code: string, user: AuthenticatedUserCon
       memberCount: FieldValue.increment(1),
       updatedAt: FieldValue.serverTimestamp(),
     });
-    transaction.update(inviteDoc.ref, {
+    transaction.update(inviteRef, {
       usageCount: FieldValue.increment(1),
     });
+    return result;
   });
 
-  const memberSnap = await memberRef.get();
-  const member = memberSnap.data() as GroupMemberDocument | undefined;
-
   return {
-    groupId: invite.groupId,
-    groupSeasonId: invite.groupSeasonId,
+    groupId: joinResult.groupId,
+    groupSeasonId: joinResult.groupSeasonId,
     membershipStatus: "ACTIVE" as const,
-    role: member?.role ?? "MEMBER",
+    role: joinResult.role,
   };
 }
 
