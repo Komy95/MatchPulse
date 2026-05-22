@@ -2,11 +2,11 @@
 
 MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-This repository is currently at Sprint 3: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, and a health endpoint.
+This repository is currently at Sprint 4: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, and a health endpoint.
 
 ## Current Scope
 
-Implemented through Sprint 3:
+Implemented through Sprint 4:
 
 - Next.js 15 App Router.
 - TypeScript strict mode.
@@ -29,6 +29,10 @@ Implemented through Sprint 3:
 - Active group membership and protected group detail pages.
 - Season-scoped invite code and invite link flow.
 - Server-only group, membership, group season, and invite mutations.
+- Provider-agnostic sports-data domain types.
+- Mock/local sports-data provider for tests and emulator development.
+- Idempotent sports-data ingestion service and Firestore writer.
+- Competition-season-scoped Firestore sports-data model.
 - Environment variable parsing.
 - Basic mobile-first app shell.
 - Basic health endpoint at `/api/health`.
@@ -41,7 +45,7 @@ Not implemented yet:
 - Leaderboards.
 - AI insights.
 - Simulator.
-- Sports-data ingestion.
+- Real sports-data provider integration.
 - Ads.
 - News.
 - Push notifications.
@@ -197,6 +201,31 @@ Firestore rules allow active members to read their own groups, group members, an
 
 Invite codes are reserved in the server-only `inviteCodes/{code}` registry. Duplicate joins are idempotent, `LEFT` members rejoin as active members and increment `memberCount` once, and `REMOVED` members cannot rejoin through an invite code.
 
+## Sports Data Abstraction
+
+Sprint 4 introduces a server-side sports-data layer for future World Cup 2026 ingestion. It does not call real vendor APIs yet and does not add prediction, scoring, leaderboard, insight, or simulator behavior.
+
+Implemented paths:
+
+```text
+lib/sports-data/domain.ts
+lib/sports-data/providers/types.ts
+lib/sports-data/providers/mock.ts
+lib/sports-data/ingestion/service.ts
+lib/sports-data/firestore/writer.ts
+```
+
+Canonical Firestore write model:
+
+```text
+competitions/{competitionId}
+competitions/{competitionId}/seasons/{seasonId}
+competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}
+competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
+```
+
+The ingestion writer uses deterministic provider-scoped document IDs and merge upserts so the same provider batch can be run repeatedly without duplicate teams or matches. Provider credentials must remain server-only. Use `SPORTS_PROVIDER_API_KEY` from Secret Manager when a real provider adapter is implemented later.
+
 After the first successful login, verify in the Firestore emulator UI that a document exists at:
 
 ```text
@@ -260,6 +289,7 @@ Then validate:
 Run:
 
 ```bash
+npm test
 npm run typecheck
 npm run lint
 npm run validate:foundation
@@ -292,6 +322,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=demo-app-id
 FIREBASE_PROJECT_ID=matchpulse-local
 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+SPORTS_PROVIDER=mock
 ```
 
 Required for staging/production runtime configuration:
@@ -304,6 +335,7 @@ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 FIREBASE_PROJECT_ID= or GOOGLE_CLOUD_PROJECT=
+SPORTS_PROVIDER=mock or real provider id
 ```
 
 Secret Manager-backed values for deployed environments:
@@ -313,6 +345,8 @@ OPENAI_API_KEY
 SPORTS_PROVIDER_API_KEY
 CRON_SECRET
 ```
+
+`SPORTS_PROVIDER_API_KEY` is required when `SPORTS_PROVIDER` is `sportmonks`, `api-football`, or `football-data-org`. It is not required for the local `mock` provider.
 
 Optional local Firebase Admin SDK service account variables are supported by the helper but should only be used in untracked local environment files:
 

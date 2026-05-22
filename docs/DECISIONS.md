@@ -97,3 +97,11 @@ Decision: Invites are stored under `groups/{groupId}/seasons/{groupSeasonId}/inv
 Reason: The current product joins users into a reusable group through an active season invitation. A server-only registry avoids ambiguous collection-group lookups and provides deterministic code collision handling.
 
 Consequence: Invite reads and writes remain server-only. Invalid, expired, revoked, or removed-user invite failures must not reveal private group or season details.
+
+## ADR-013: Store sports data under competition-season scoped public paths
+
+Decision: Provider-normalized sports data is stored under `competitions/{competitionId}/seasons/{seasonId}` with season-scoped `teams` and `matches` subcollections.
+
+Reason: World Cup fixtures, teams, freshness, and provider attribution are public reference data shared by many group seasons and future product surfaces. Competition-season scoping keeps regular leagues and tournaments from colliding while giving future prediction and scoring code a stable match source.
+
+Consequence: Provider adapters normalize vendor payloads before persistence. Ingestion uses deterministic provider-scoped IDs and server-only merge upserts. Future private prediction and leaderboard documents reference these public match IDs from group-season paths rather than duplicating provider-ingested sports data under groups.

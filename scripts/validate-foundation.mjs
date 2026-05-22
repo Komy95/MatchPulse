@@ -56,6 +56,39 @@ const checks = [
     file: "lib/env.ts",
     includes: ["APP_ENV", "staging", "production", "requiredDeployedEnvVars"],
   },
+  {
+    file: "lib/sports-data/domain.ts",
+    includes: [
+      "NormalizedCompetition",
+      "NormalizedSeason",
+      "NormalizedTeam",
+      "NormalizedMatch",
+      "FreshnessMetadata",
+    ],
+  },
+  {
+    file: "lib/sports-data/providers/types.ts",
+    includes: ["interface SportsDataProvider", "fetchCompetitionSeason"],
+  },
+  {
+    file: "lib/sports-data/firestore/writer.ts",
+    includes: [
+      'collection("competitions")',
+      'collection("seasons")',
+      'collection("teams")',
+      'collection("matches")',
+      "merge: true",
+    ],
+  },
+  {
+    file: "docs/SPORTS-DATA-INGESTION.md",
+    includes: [
+      "competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}",
+      "Cloud Run Job",
+      "Pub/Sub",
+      "SPORTS_PROVIDER_API_KEY",
+    ],
+  },
 ];
 
 const failures = [];

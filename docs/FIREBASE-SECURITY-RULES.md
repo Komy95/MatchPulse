@@ -61,9 +61,9 @@ Rules should prevent users from writing another user's profile.
 Everyone can read public reference documents:
 
 - `competitions/{competitionId}`
-- `seasons/{seasonId}`
-- `teams/{teamId}`
-- `matches/{matchId}`
+- `competitions/{competitionId}/seasons/{seasonId}`
+- `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}`
+- `competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}`
 - `teamMetricSnapshots/{snapshotId}`
 - public `matchInsights/{matchId}`
 - public `simulationRuns/{simulationId}`

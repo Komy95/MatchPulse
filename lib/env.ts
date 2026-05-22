@@ -11,7 +11,9 @@ const baseEnvSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_INSIGHT_MODEL: z.string().optional(),
-  SPORTS_PROVIDER: z.string().default("sportmonks"),
+  SPORTS_PROVIDER: z
+    .enum(["mock", "sportmonks", "api-football", "football-data-org"])
+    .default("mock"),
   SPORTS_PROVIDER_API_KEY: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   SIM_DEFAULT_RUNS: z.coerce.number().int().positive().default(10000),
@@ -50,6 +52,14 @@ const envSchema = baseEnvSchema.superRefine((value, context) => {
       code: z.ZodIssueCode.custom,
       path: ["FIREBASE_PROJECT_ID"],
       message: "FIREBASE_PROJECT_ID or GOOGLE_CLOUD_PROJECT is required outside local development.",
+    });
+  }
+
+  if (value.SPORTS_PROVIDER !== "mock" && !value.SPORTS_PROVIDER_API_KEY) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["SPORTS_PROVIDER_API_KEY"],
+      message: "SPORTS_PROVIDER_API_KEY is required when a real sports provider is configured.",
     });
   }
 });

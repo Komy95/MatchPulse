@@ -28,10 +28,10 @@ This document is the canonical Firestore data model for the MVP.
 | `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` | Future user predictions for group-season matches | Members according to visibility settings | User-owned writes through server routes |
 | `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` | Future prediction audit history | Owner/admin or user-scoped views | Server routes only |
 | `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Future versioned group-season standings | Active members | Scoring jobs only |
-| `competitions/{competitionId}` | FIFA World Cup and future competitions | Public | Server jobs/admin only |
-| `seasons/{seasonId}` | Competition season or tournament instance | Public | Server jobs/admin only |
-| `teams/{teamId}` | Country or club teams | Public | Server jobs/admin only |
-| `matches/{matchId}` | Fixtures, status, scores, lock times | Public for World Cup fixtures | Server jobs/admin only |
+| `competitions/{competitionId}` | FIFA World Cup and future competition metadata | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}` | Provider-normalized competition season or tournament instance | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}` | Season participants | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}` | Season fixtures, status, scores, and lock times | Public for World Cup fixtures | Server jobs/admin only |
 | `teamMetricSnapshots/{snapshotId}` | Rankings, form, ratings, freshness | Public | Server jobs only |
 | `matchInsights/{matchId}` | AI insight outputs and metadata | Public for public matches; restricted for private contexts | Server jobs/routes only |
 | `simulationRuns/{simulationId}` | Public and custom simulation metadata/results | Public if public, requester if private | Server jobs/routes only |
@@ -211,7 +211,53 @@ Each entry may include:
 - `goalDifferenceCount`
 - `tendencyCount`
 
-### `matches/{matchId}`
+### `competitions/{competitionId}`
+
+Stores public competition metadata normalized from the sports-data provider abstraction.
+
+Fields:
+
+- `name`
+- `countryCode`
+- `provider`
+- `freshness`
+- `updatedAt`
+
+### `competitions/{competitionId}/seasons/{seasonId}`
+
+Stores the provider-normalized season or tournament instance. This is the canonical public season path for sports data ingestion. The older top-level `seasons/{seasonId}`, `teams/{teamId}`, and `matches/{matchId}` shapes are not used by the Sprint 4 ingestion path.
+
+Fields:
+
+- `competitionId`
+- `label`
+- `startsAt`
+- `endsAt`
+- `provider`
+- `freshness`
+- `lastIngestedAt`
+- `updatedAt`
+- `teamCount`
+- `matchCount`
+- `finalMatchCount`
+
+### `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}`
+
+Stores provider-normalized season participants. Team IDs are deterministic and provider-scoped so repeated ingestion upserts the same document.
+
+Fields:
+
+- `competitionId`
+- `seasonId`
+- `name`
+- `shortName`
+- `countryCode`
+- `groupCode`
+- `provider`
+- `freshness`
+- `updatedAt`
+
+### `competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}`
 
 Fields:
 
@@ -230,10 +276,12 @@ Fields:
 - `awayScore90`
 - `homeScoreFinal`
 - `awayScoreFinal`
+- `score`
 - `provider`
-- `providerId`
-- `providerUpdatedAt`
+- `freshness`
 - `updatedAt`
+
+Match IDs are deterministic and provider-scoped. `kickoffAt`, `lockAt`, provider freshness, and all provider update timestamps must be UTC ISO timestamps. Future prediction locking and scoring jobs must read this canonical match document before accepting prediction saves or scoring final results.
 
 ### `matchInsights/{matchId}`
 
@@ -303,9 +351,9 @@ Reference when:
 Public documents:
 
 - `competitions`
-- `seasons`
-- `teams`
-- `matches`
+- `competitions/{competitionId}/seasons`
+- `competitions/{competitionId}/seasons/{seasonId}/teams`
+- `competitions/{competitionId}/seasons/{seasonId}/matches`
 - `teamMetricSnapshots`
 - public `matchInsights`
 - public `simulationRuns`
@@ -333,8 +381,8 @@ Do not create `firestore.indexes.json` during documentation-only work. These are
 
 | Query | Collection scope | Likely index |
 |---|---|---|
-| Upcoming matches by season | `matches` | `seasonId ASC, kickoffAt ASC` |
-| Matches by stage/group | `matches` | `seasonId ASC, stage ASC, groupCode ASC, kickoffAt ASC` |
+| Upcoming matches by season | `competitions/{competitionId}/seasons/{seasonId}/matches` | `kickoffAt ASC` |
+| Matches by stage/group | `competitions/{competitionId}/seasons/{seasonId}/matches` | `stage ASC, groupCode ASC, kickoffAt ASC` |
 | Active group members | `groups/{groupId}/members` | `status ASC, role ASC` |
 | Group seasons | `groups/{groupId}/seasons` | `createdAt ASC` |
 | Invite code lookup | `inviteCodes` | document ID equals normalized code |

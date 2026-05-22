@@ -40,6 +40,17 @@ Implemented through Sprint 3:
 | `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/invites` | POST | Owner/Admin | Create a season-scoped invite |
 | `/api/v1/groups/join` | POST | Authenticated | Join by invite code |
 
+Sprint 4 data abstraction does not add public HTTP ingestion endpoints. Provider ingestion is a server-side module intended for Cloud Run Jobs or trusted admin triggers. Sports-data writes go through Firebase Admin SDK and target:
+
+```text
+competitions/{competitionId}
+competitions/{competitionId}/seasons/{seasonId}
+competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}
+competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
+```
+
+Do not expose provider API keys or ingestion mutation routes to browser clients.
+
 Future endpoints must keep group-season scoping:
 
 | Endpoint | Method | Auth | Purpose |

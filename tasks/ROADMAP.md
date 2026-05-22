@@ -123,13 +123,24 @@ Current stabilization pass:
 
 ## Sprint 4: Data Abstraction
 
-Future implementation should establish:
+Implemented:
 
-- Provider interface for Sportmonks, API-Football, and football-data.org.
-- Normalized team and match shapes.
-- Idempotent ingestion design for Cloud Run Jobs.
-- Firestore write model for competitions, seasons, teams, matches, and freshness metadata.
-- Pub/Sub event plan for provider updates.
+- Provider-agnostic sports-data interface designed for Sportmonks, API-Football, football-data.org, and local mock data.
+- Canonical normalized shapes for competitions, seasons, teams, venues, matches, scores, provider metadata, and freshness metadata.
+- Mock/local provider for tests and emulator-safe development.
+- Idempotent ingestion service that accepts a provider, validates requested scope, and writes through a persistence boundary.
+- Firestore write model under `competitions/{competitionId}/seasons/{seasonId}` with season-scoped `teams` and `matches`.
+- Deterministic provider-scoped document ID helpers.
+- Focused tests for provider mapping, deterministic IDs, idempotent upsert behavior, freshness updates, status normalization, and invalid provider data.
+- Provider update, Cloud Run Job, Pub/Sub, retry, freshness, and future scoring-trigger plan in `docs/SPORTS-DATA-INGESTION.md`.
+
+Still deferred:
+
+- Real vendor API clients.
+- Scheduled Cloud Run Job deployment.
+- Provider webhook endpoints.
+- Match-final scoring triggers.
+- Any prediction, leaderboard, dashboard personalization, AI insight, or simulator feature work.
 
 ## Sprint 5: Preferences and Dashboard
 
