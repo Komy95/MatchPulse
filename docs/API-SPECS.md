@@ -53,6 +53,8 @@ competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
 
 Do not expose provider API keys or ingestion mutation routes to browser clients.
 
+Sprint 6.2 adds pure scoring-domain code only. It does not add scoring, leaderboard, or job API routes.
+
 Future endpoints must keep group-season scoping:
 
 | Endpoint | Method | Auth | Purpose |

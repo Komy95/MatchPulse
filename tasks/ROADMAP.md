@@ -165,7 +165,26 @@ Still deferred:
 - Dashboard personalization and next-action aggregation.
 - Favorite/followed team preference setup.
 
-## Sprint 6: Scoring and Leaderboards
+## Sprint 6.2: Private Group-Season Scoring Domain
+
+Implemented:
+
+- Pure Hybrid 3-2-1 scoring domain under `lib/scoring`.
+- Result types for `EXACT_SCORE`, `GOAL_DIFFERENCE`, `TENDENCY`, and `MISS`.
+- Scoreable match handling for final matches with canonical 90-minute scores.
+- Non-scoreable handling for scheduled, live, postponed, cancelled, abandoned, void, and missing-score matches.
+- Prediction scoring eligibility helpers for group-season scoped scoring.
+- Deterministic scoring tests for exact score, goal difference, tendency, miss, zero-zero, high scores, non-final states, and missing scores.
+
+Still deferred:
+
+- Booster multiplication.
+- Leaderboard snapshots.
+- Leaderboard UI.
+- Global leaderboard.
+- Cloud Run scoring jobs.
+
+## Sprint 6.3: Scoring Jobs and Leaderboards
 
 Future implementation should establish:
 

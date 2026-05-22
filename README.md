@@ -2,11 +2,11 @@
 
 MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-This repository is currently at Sprint 5: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, prediction entry foundation, and a health endpoint.
+This repository is currently at Sprint 6.2: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, prediction entry foundation, pure Hybrid 3-2-1 scoring domain, and a health endpoint.
 
 ## Current Scope
 
-Implemented through Sprint 5:
+Implemented through Sprint 6.2:
 
 - Next.js 15 App Router.
 - TypeScript strict mode.
@@ -38,6 +38,9 @@ Implemented through Sprint 5:
 - Server-validated bulk prediction upsert endpoint.
 - Current-user prediction entry UI on the group detail page.
 - Prediction revision creation for changed predictions.
+- Pure Hybrid 3-2-1 scoring domain.
+- Scoreable match eligibility checks for final matches with 90-minute scores.
+- Prediction scoring eligibility helpers for group-season scoped scoring.
 - Environment variable parsing.
 - Basic mobile-first app shell.
 - Basic health endpoint at `/api/health`.
@@ -250,6 +253,19 @@ POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions
 ```
 
 Prediction writes are server-only. The server verifies active group membership, group-season scope, canonical match existence, prediction mode, booster setting, score bounds, and trusted server time before writing. Direct Firestore client writes to predictions and prediction revisions are denied.
+
+## Scoring Domain
+
+Sprint 6.2 adds pure scoring logic only. It does not create leaderboard snapshots, scoring jobs, or leaderboard UI.
+
+MVP scoring uses Hybrid 3-2-1:
+
+- 3 points for exact score.
+- 2 points for correct goal difference.
+- 1 point for correct tendency.
+- 0 points for a miss.
+
+Prediction scoring uses the 90-minute result plus stoppage time only. Extra time and penalties are out of scope for user prediction scoring. Booster multiplication is also deferred; the base scoring result is calculated without booster effects.
 
 After the first successful login, verify in the Firestore emulator UI that a document exists at:
 

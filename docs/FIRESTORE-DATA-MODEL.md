@@ -194,6 +194,26 @@ Fields:
 
 Revisions are created only when a user changes an existing prediction. Repeating the same save is idempotent and does not create a revision.
 
+### Future Scoring Result Fields
+
+Sprint 6.2 implements the pure scoring domain only. Leaderboard snapshots remain deferred to Sprint 6.3.
+
+When scoring results are persisted later, each scored prediction should preserve enough metadata for auditable leaderboard aggregation:
+
+- `points`
+- `resultType`: `EXACT_SCORE`, `GOAL_DIFFERENCE`, `TENDENCY`, or `MISS`
+- `scoringPreset`: `HYBRID_321`
+- `predictedOutcome`
+- `actualOutcome`
+- `predictedGoalDifference`
+- `actualGoalDifference`
+- `exactScore`
+- `correctGoalDifference`
+- `correctTendency`
+- `boosterApplied`
+
+MVP prediction scoring uses the 90-minute result plus stoppage time only. Extra time and penalties are not used for user prediction scoring. Booster multiplication is not applied in Sprint 6.2.
+
 ### `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`
 
 Fields:
