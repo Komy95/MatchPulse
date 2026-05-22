@@ -347,6 +347,9 @@ npm run build
 
 The emulator suite verifies:
 
+- Reference-data seed creates the canonical competition, season, teams, and matches.
+- Seeded matches include `kickoffAt` and `lockAt` UTC timestamps.
+- The reference-data seed is idempotent.
 - Group-season scoped prediction documents use `groups/{groupId}/seasons/{groupSeasonId}/predictions/{matchId}_{userId}`.
 - Active members can view group-season matches.
 - Non-members cannot view or save group-season predictions.
@@ -354,6 +357,7 @@ The emulator suite verifies:
 - Predictions after `lockAt` are rejected.
 - Duplicate saves are idempotent.
 - Changed predictions create prediction revisions.
+- Invalid match IDs are rejected.
 - Matches outside the group season are rejected.
 - Direct Firestore client writes to predictions, prediction revisions, and reference matches are denied.
 

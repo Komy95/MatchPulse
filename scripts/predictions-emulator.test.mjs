@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import test, { beforeEach } from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
@@ -83,6 +84,36 @@ test("member can view group-season matches and save before lock", async () => {
   assert.equal(predictionSnap.data().groupSeasonId, "group-season-1");
   assert.equal(predictionSnap.data().matchId, "open-match");
   assert.equal(predictionSnap.data().userId, "member-1");
+});
+
+test("local reference seed creates canonical documents and is idempotent", async () => {
+  const firstRun = await importSeedScript();
+  const secondRun = await importSeedScript();
+  const competitionSnap = await adminFirestore.collection("competitions").doc("fifa-world-cup").get();
+  const seasonRef = competitionSnap.ref.collection("seasons").doc("world-cup-2026");
+  const seasonSnap = await seasonRef.get();
+  const teamsSnap = await seasonRef.collection("teams").get();
+  const matchesSnap = await seasonRef.collection("matches").get();
+
+  assert.equal(firstRun, true);
+  assert.equal(secondRun, true);
+  assert.equal(competitionSnap.exists, true);
+  assert.equal(seasonSnap.exists, true);
+  assert.equal(teamsSnap.size, 2);
+  assert.equal(matchesSnap.size, 1);
+
+  const match = matchesSnap.docs[0].data();
+  assert.equal(typeof match.kickoffAt, "string");
+  assert.equal(typeof match.lockAt, "string");
+  assert.equal(isUtcTimestamp(match.kickoffAt), true);
+  assert.equal(isUtcTimestamp(match.lockAt), true);
+  assert.equal(match.competitionId, "fifa-world-cup");
+  assert.equal(match.seasonId, "world-cup-2026");
+  assert.equal(match.status, "SCHEDULED");
+  assert.equal(match.stage, "GROUP_STAGE");
+  assert.equal(match.groupCode, "A");
+  assert.equal(typeof match.homeTeamId, "string");
+  assert.equal(typeof match.awayTeamId, "string");
 });
 
 test("prediction save after lock is rejected and does not write", async () => {
@@ -227,6 +258,32 @@ test("match outside group season is rejected", async () => {
       }),
     /Match does not belong to this group season/,
   );
+});
+
+test("invalid match is rejected and does not write", async () => {
+  await seedFixture({ memberUserId: "member-1" });
+
+  await assert.rejects(
+    () =>
+      upsertPredictions({
+        groupId: "group-1",
+        groupSeasonId: "group-season-1",
+        user: { uid: "member-1" },
+        input: {
+          predictions: [
+            {
+              matchId: "missing-match",
+              homeGoals: 2,
+              awayGoals: 1,
+              booster: false,
+            },
+          ],
+        },
+      }),
+    /Match not found/,
+  );
+
+  assert.equal((await predictionDoc("missing-match_member-1").get()).exists, false);
 });
 
 test("direct Firestore client writes are denied by security rules", async () => {
@@ -519,4 +576,14 @@ function loadTsModule(file, requireFunction, moduleCache) {
 
 function assertJsonEqual(actual, expected) {
   assert.equal(JSON.stringify(actual), JSON.stringify(expected));
+}
+
+async function importSeedScript() {
+  const url = `${pathToFileURL("scripts/seed-world-cup-reference-data.mjs").href}?run=${Date.now()}-${Math.random()}`;
+  await import(url);
+  return true;
+}
+
+function isUtcTimestamp(value) {
+  return typeof value === "string" && value.endsWith("Z") && Number.isFinite(Date.parse(value));
 }
