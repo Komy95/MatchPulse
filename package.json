@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "test": "node --test scripts/invite-join.test.mjs scripts/sports-data.test.mjs scripts/predictions.test.mjs",
+    "test:emulator": "firebase emulators:exec --only auth,firestore \"node --test scripts/predictions-emulator.test.mjs\"",
     "validate:foundation": "node scripts/validate-foundation.mjs",
     "seed:reference": "node scripts/seed-world-cup-reference-data.mjs",
     "emulators": "firebase emulators:start --only auth,firestore"

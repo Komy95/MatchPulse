@@ -336,11 +336,26 @@ Run:
 
 ```bash
 npm test
+npm run test:emulator
 npm run typecheck
 npm run lint
 npm run validate:foundation
 npm run build
 ```
+
+`npm run test:emulator` starts the Firebase Auth and Firestore emulators and runs the prediction integration/security suite. It requires Java on `PATH` because the Firestore emulator is Java-based.
+
+The emulator suite verifies:
+
+- Group-season scoped prediction documents use `groups/{groupId}/seasons/{groupSeasonId}/predictions/{matchId}_{userId}`.
+- Active members can view group-season matches.
+- Non-members cannot view or save group-season predictions.
+- Members can save predictions before `lockAt`.
+- Predictions after `lockAt` are rejected.
+- Duplicate saves are idempotent.
+- Changed predictions create prediction revisions.
+- Matches outside the group season are rejected.
+- Direct Firestore client writes to predictions, prediction revisions, and reference matches are denied.
 
 ## Environment Variables
 
