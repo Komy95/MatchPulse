@@ -2,11 +2,11 @@
 
 MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-This repository is currently at Sprint 6.2: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, prediction entry foundation, pure Hybrid 3-2-1 scoring domain, and a health endpoint.
+This repository is currently at Sprint 6.3: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, prediction entry foundation, pure Hybrid 3-2-1 scoring domain, private group-season leaderboard snapshots, and a health endpoint.
 
 ## Current Scope
 
-Implemented through Sprint 6.2:
+Implemented through Sprint 6.3:
 
 - Next.js 15 App Router.
 - TypeScript strict mode.
@@ -41,6 +41,10 @@ Implemented through Sprint 6.2:
 - Pure Hybrid 3-2-1 scoring domain.
 - Scoreable match eligibility checks for final matches with 90-minute scores.
 - Prediction scoring eligibility helpers for group-season scoped scoring.
+- Private group-season leaderboard aggregation.
+- Server-written `leaderboardSnapshots/latest` documents.
+- Member-readable private leaderboard API and group detail UI.
+- Owner/admin leaderboard recalculation route for MVP validation.
 - Environment variable parsing.
 - Basic mobile-first app shell.
 - Basic health endpoint at `/api/health`.
@@ -49,7 +53,7 @@ Implemented through Sprint 6.2:
 
 Not implemented yet:
 
-- Leaderboards.
+- Global leaderboard.
 - AI insights.
 - Simulator.
 - Real sports-data provider integration.
@@ -254,9 +258,9 @@ POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions
 
 Prediction writes are server-only. The server verifies active group membership, group-season scope, canonical match existence, prediction mode, booster setting, score bounds, and trusted server time before writing. Direct Firestore client writes to predictions and prediction revisions are denied.
 
-## Scoring Domain
+## Scoring And Leaderboards
 
-Sprint 6.2 adds pure scoring logic only. It does not create leaderboard snapshots, scoring jobs, or leaderboard UI.
+Sprint 6.2 added pure scoring logic. Sprint 6.3 uses that scoring domain to create private group-season leaderboard snapshots.
 
 MVP scoring uses Hybrid 3-2-1:
 
@@ -266,6 +270,14 @@ MVP scoring uses Hybrid 3-2-1:
 - 0 points for a miss.
 
 Prediction scoring uses the 90-minute result plus stoppage time only. Extra time and penalties are out of scope for user prediction scoring. Booster multiplication is also deferred; the base scoring result is calculated without booster effects.
+
+Private leaderboard snapshots are scoped to:
+
+```text
+groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/latest
+```
+
+Snapshots are server-written only, active group members can read them, and non-members cannot read them. Recalculation is idempotent: unchanged scoring inputs keep the existing latest snapshot. Global leaderboards remain deferred.
 
 After the first successful login, verify in the Firestore emulator UI that a document exists at:
 
@@ -346,6 +358,25 @@ Then validate:
 - Invalid match IDs return `MATCH_NOT_FOUND`.
 - Direct client writes to prediction and revision documents are denied by Firestore rules.
 
+## Sprint 6.3 Validation Steps
+
+Run the app against Firebase Auth and Firestore emulators, then seed reference data:
+
+```bash
+npm run emulators
+npm run seed:reference
+npm run dev
+```
+
+Then validate:
+
+- Active group member can call `GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard`.
+- A group owner/admin can call `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard/recalculate`.
+- Repeating recalculation without scoring-relevant changes returns the same latest snapshot.
+- Non-members cannot read private group leaderboard snapshots.
+- Direct Firestore client writes to `leaderboardSnapshots/{snapshotId}` are denied.
+- The group detail page shows a mobile-first leaderboard section and an empty state when no snapshot exists.
+
 ## Verification
 
 Run:
@@ -376,6 +407,7 @@ The emulator suite verifies:
 - Invalid match IDs are rejected.
 - Matches outside the group season are rejected.
 - Direct Firestore client writes to predictions, prediction revisions, and reference matches are denied.
+- Direct Firestore client writes to leaderboard snapshots are denied.
 
 ## Environment Variables
 

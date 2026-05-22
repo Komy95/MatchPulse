@@ -161,9 +161,11 @@ Read access should be limited:
 
 Group leaderboard snapshots are readable only by active group members.
 
-Writes are server-only from scoring jobs.
+Writes are server-only from the owner/admin recalculation route or future trusted scoring jobs. Firestore clients cannot create, update, or delete `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`.
 
-Global leaderboard snapshots are public read models for opted-in users only and must not include:
+Snapshot entries contain aggregate standing fields only: user ID, denormalized display name/photo URL, rank, previous rank, point totals, result-type counts, scored prediction count, and last scored timestamp. They must not include raw predictions for other users.
+
+Global leaderboard snapshots are deferred. When implemented, they are public read models for opted-in users only and must not include:
 
 - Email.
 - Private group IDs or names.

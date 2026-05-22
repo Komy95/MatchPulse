@@ -27,7 +27,7 @@ This document is the canonical Firestore data model for the MVP.
 | `inviteCodes/{code}` | Server-only invite code uniqueness and lookup registry | None | Server routes only |
 | `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` | User predictions for group-season matches | Owning user while visibility rules are private | Server routes only |
 | `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` | Prediction audit history | Server-mediated only for MVP | Server routes only |
-| `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Future versioned group-season standings | Active members | Scoring jobs only |
+| `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Private group-season standings snapshots | Active members | Server routes/jobs only |
 | `competitions/{competitionId}` | FIFA World Cup and future competition metadata | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}` | Provider-normalized competition season or tournament instance | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}` | Season participants | Public | Server jobs/admin only |
@@ -194,9 +194,9 @@ Fields:
 
 Revisions are created only when a user changes an existing prediction. Repeating the same save is idempotent and does not create a revision.
 
-### Future Scoring Result Fields
+### Scoring Result Inputs
 
-Sprint 6.2 implements the pure scoring domain only. Leaderboard snapshots remain deferred to Sprint 6.3.
+Sprint 6.2 implements the pure scoring domain. Sprint 6.3 aggregates predictions and canonical final match scores into private group-season leaderboard snapshots without exposing raw predictions.
 
 When scoring results are persisted later, each scored prediction should preserve enough metadata for auditable leaderboard aggregation:
 
@@ -212,29 +212,40 @@ When scoring results are persisted later, each scored prediction should preserve
 - `correctTendency`
 - `boosterApplied`
 
-MVP prediction scoring uses the 90-minute result plus stoppage time only. Extra time and penalties are not used for user prediction scoring. Booster multiplication is not applied in Sprint 6.2.
+MVP prediction scoring uses the 90-minute result plus stoppage time only. Extra time and penalties are not used for user prediction scoring. Booster multiplication is not applied in Sprint 6.3.
 
 ### `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`
 
 Fields:
 
-- `snapshotAt`
-- `matchId`
+- `groupId`
 - `groupSeasonId`
+- `snapshotAt`
 - `scoringPreset`
+- `scoredMatchIds`
+- `generatedBy`
 - `entries`
-- `generatedByJobId`
+- `inputHash`
+- `createdAt`
 
-Each entry may include:
+The MVP writes a canonical `latest` snapshot to avoid duplicate snapshots when scoring-relevant input has not changed. Future history charts may add versioned snapshot IDs.
+
+Each entry includes:
 
 - `userId`
 - `displayName`
+- `photoUrl`
 - `rank`
 - `previousRank`
 - `points`
 - `exactCount`
 - `goalDifferenceCount`
 - `tendencyCount`
+- `missCount`
+- `scoredPredictionCount`
+- `lastScoredAt`
+
+Leaderboard snapshots are private group read models. Active group members can read them; clients cannot write them. Entries are denormalized from active group members and aggregated scored predictions, but they must not include other users' raw prediction values.
 
 ### `competitions/{competitionId}`
 

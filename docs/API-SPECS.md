@@ -27,7 +27,7 @@
 
 ## Core Endpoints
 
-Implemented through Sprint 5:
+Implemented through Sprint 6.3:
 
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
@@ -41,6 +41,8 @@ Implemented through Sprint 5:
 | `/api/v1/groups/join` | POST | Authenticated | Join by invite code |
 | `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches` | GET | Member | Group-season scoped matches with current user's prediction |
 | `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions` | POST | Member | Bulk prediction upsert |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard` | GET | Member | Latest private group-season leaderboard snapshot |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard/recalculate` | POST | Owner/Admin | Idempotently recalculate latest private leaderboard snapshot |
 
 Sprint 4 data abstraction does not add public HTTP ingestion endpoints. Provider ingestion is a server-side module intended for Cloud Run Jobs or trusted admin triggers. Sports-data writes go through Firebase Admin SDK and target:
 
@@ -53,13 +55,12 @@ competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
 
 Do not expose provider API keys or ingestion mutation routes to browser clients.
 
-Sprint 6.2 adds pure scoring-domain code only. It does not add scoring, leaderboard, or job API routes.
+Sprint 6.3 adds private group-season leaderboard reads and owner/admin recalculation. Cloud Run scoring jobs remain future work.
 
 Future endpoints must keep group-season scoping:
 
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
-| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard` | GET | Member | Group-season leaderboard |
 | `/api/v1/leaderboard/global` | GET | Public/Auth optional | Future global leaderboard read model |
 | `/api/v1/matches/{matchId}` | GET | Public or member | Future match detail |
 | `/api/v1/matches/{matchId}/insight` | GET | Public or member | Future AI insight |
@@ -253,24 +254,60 @@ Rules:
 GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard
 ```
 
+Rules:
+
+- Requires active group membership.
+- Returns the canonical latest snapshot or `snapshot: null` before calculation.
+- Does not expose raw private predictions.
+- Non-members receive `GROUP_NOT_FOUND`.
+
 Response:
 
 ```json
 {
   "groupId": "grp_01JX...",
-  "snapshotAt": "2026-06-15T22:00:00Z",
-  "entries": [
-    {
-      "rank": 1,
-      "profileId": "pro_01",
-      "displayName": "Tim",
-      "points": 18,
-      "exactCount": 4,
-      "tendencyCount": 6
-    }
-  ]
+  "groupSeasonId": "gsea_01JX...",
+  "snapshot": {
+    "groupId": "grp_01JX...",
+    "groupSeasonId": "gsea_01JX...",
+    "snapshotAt": "2026-06-15T22:00:00.000Z",
+    "scoringPreset": "HYBRID_321",
+    "scoredMatchIds": ["match_1", "match_2"],
+    "generatedBy": "SERVER_ROUTE",
+    "entries": [
+      {
+        "userId": "uid_1",
+        "displayName": "Tim",
+        "photoUrl": null,
+        "rank": 1,
+        "previousRank": null,
+        "points": 18,
+        "exactCount": 4,
+        "goalDifferenceCount": 2,
+        "tendencyCount": 6,
+        "missCount": 1,
+        "scoredPredictionCount": 13,
+        "lastScoredAt": "2026-06-15T20:30:00.000Z"
+      }
+    ],
+    "inputHash": "sha256...",
+    "createdAt": "2026-06-15T22:00:00.000Z"
+  }
 }
 ```
+
+```http
+POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard/recalculate
+```
+
+Rules:
+
+- Requires owner/admin membership.
+- Uses Sprint 6.2 Hybrid 3-2-1 scoring helpers.
+- Scores only canonical group-season matches that are final and have 90-minute scores.
+- Ignores non-scoreable matches, inactive/removed members, and predictions outside the group season.
+- Writes `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/latest` only from the server.
+- Is idempotent for unchanged scoring input.
 
 ## Global Leaderboard
 

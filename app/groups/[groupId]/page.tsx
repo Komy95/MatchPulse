@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { InviteCard } from "@/components/groups/invite-card";
+import { GroupSeasonLeaderboard } from "@/components/leaderboard/group-season-leaderboard";
 import { PredictionEntry } from "@/components/predictions/prediction-entry";
 import { getAuthenticatedUserContext } from "@/lib/auth/user-context";
 import { getGroupDetail, listGroupSeasons } from "@/lib/groups/service";
 import { listGroupSeasonMatchesWithPredictions } from "@/lib/predictions/service";
 
-const futureTabs = ["Leaderboard", "Insights", "Settings"];
+const futureTabs = ["Insights", "Settings"];
 
 export default async function GroupDetailPage({
   params,
@@ -29,6 +30,9 @@ export default async function GroupDetailPage({
     groupSeasonId: group.activeGroupSeason.id,
     userId: user.uid,
   });
+  const currentMember = group.members.find((member) => member.userId === user.uid);
+  const canRecalculate =
+    currentMember?.role === "OWNER" || currentMember?.role === "ADMIN";
 
   return (
     <main className="min-h-screen bg-base px-5 py-6 pb-12 text-primaryText">
@@ -68,6 +72,12 @@ export default async function GroupDetailPage({
           groupId={group.id}
           groupSeasonId={group.activeGroupSeason.id}
           matches={matchResponse.matches}
+        />
+
+        <GroupSeasonLeaderboard
+          canRecalculate={canRecalculate}
+          groupId={group.id}
+          groupSeasonId={group.activeGroupSeason.id}
         />
 
         <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">

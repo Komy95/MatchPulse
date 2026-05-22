@@ -317,6 +317,15 @@ test("direct Firestore client writes are denied by security rules", async () => 
   );
   await assert.rejects(
     () =>
+      setDoc(doc(db, "groups/group-1/seasons/group-season-1/leaderboardSnapshots/latest"), {
+        groupId: "group-1",
+        groupSeasonId: "group-season-1",
+        entries: [],
+      }),
+    /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
+  );
+  await assert.rejects(
+    () =>
       setDoc(doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/matches/new-match"), {
         status: "SCHEDULED",
       }),

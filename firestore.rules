@@ -143,6 +143,8 @@ service cloud.firestore {
         }
 
         match /leaderboardSnapshots/{snapshotId} {
+          // Private aggregate standings only. Raw predictions stay under predictions
+          // and remain readable only by their owning user.
           allow read: if isActiveGroupMember(groupId);
           allow write: if false;
         }

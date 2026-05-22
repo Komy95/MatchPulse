@@ -184,14 +184,24 @@ Still deferred:
 - Global leaderboard.
 - Cloud Run scoring jobs.
 
-## Sprint 6.3: Scoring Jobs and Leaderboards
+## Sprint 6.3: Private Group-Season Leaderboard Snapshots
 
-Future implementation should establish:
+Implemented:
 
-- Hybrid 3-2-1 scoring.
-- Private group-season leaderboard snapshots.
+- Private group-season leaderboard aggregation under `lib/leaderboard`.
+- Deterministic ordinal rankings by points, exact count, goal-difference count, tendency count, display name, then user ID.
+- Canonical `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/latest` snapshots.
+- Member-readable `GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard`.
+- Owner/admin `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard/recalculate` for MVP validation.
+- Minimal mobile-first leaderboard section on the group detail page.
+- Tests for ranking, tie-breaks, ignored matches, inactive members, and deterministic snapshot input hashing.
+
+Still deferred:
+
 - Global leaderboard snapshots for opted-in users.
 - Cloud Run scoring jobs triggered by final match updates.
+- Leaderboard history charts.
+- Other users' raw prediction comparison UI.
 
 ## Sprint 6.5: Preferences and Dashboard
 
