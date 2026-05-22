@@ -10,8 +10,62 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function userProfileFields() {
+      return [
+        "displayName",
+        "email",
+        "photoUrl",
+        "locale",
+        "countryCode",
+        "favoriteTeamIds",
+        "followedTeamIds",
+        "globalLeaderboardOptIn",
+        "consent",
+        "createdAt",
+        "updatedAt"
+      ];
+    }
+
+    function nullableString(value, maxLength) {
+      return value == null || (value is string && value.size() <= maxLength);
+    }
+
+    function validConsent(consent) {
+      return consent is map
+        && consent.keys().hasOnly(["termsAccepted", "privacyAccepted", "marketing"])
+        && consent.termsAccepted is bool
+        && consent.privacyAccepted is bool
+        && consent.marketing is bool;
+    }
+
+    function validUserProfile(data) {
+      return data.keys().hasAll(userProfileFields())
+        && data.keys().hasOnly(userProfileFields())
+        && nullableString(data.displayName, 120)
+        && nullableString(data.email, 320)
+        && nullableString(data.photoUrl, 2048)
+        && data.locale is string
+        && data.locale.size() >= 2
+        && data.locale.size() <= 35
+        && nullableString(data.countryCode, 2)
+        && data.favoriteTeamIds is list
+        && data.favoriteTeamIds.size() <= 64
+        && data.followedTeamIds is list
+        && data.followedTeamIds.size() <= 128
+        && data.globalLeaderboardOptIn is bool
+        && validConsent(data.consent);
+    }
+
     match /users/{userId} {
-      allow read, create, update: if isSelf(userId);
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId)
+        && validUserProfile(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isSelf(userId)
+        && validUserProfile(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
       allow delete: if false;
     }
 

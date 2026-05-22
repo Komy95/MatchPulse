@@ -7,6 +7,13 @@ export type AuthenticatedUserContext = {
   displayName?: string;
 };
 
+export class UnauthorizedError extends Error {
+  constructor(message = "Authentication is required.") {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+
 export async function getAuthenticatedUserContext(): Promise<AuthenticatedUserContext | null> {
   const token = await getRequestToken();
 
@@ -25,6 +32,16 @@ export async function getAuthenticatedUserContext(): Promise<AuthenticatedUserCo
   } catch {
     return null;
   }
+}
+
+export async function requireAuthenticatedUserContext(): Promise<AuthenticatedUserContext> {
+  const user = await getAuthenticatedUserContext();
+
+  if (!user) {
+    throw new UnauthorizedError();
+  }
+
+  return user;
 }
 
 async function getRequestToken() {

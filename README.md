@@ -2,11 +2,11 @@
 
 MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-This repository is currently at Sprint 1 foundation: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, a basic app shell, and a health endpoint.
+This repository is currently at Sprint 2: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, protected dashboard routing, user profile bootstrap, conservative profile-focused Firestore rules, and a health endpoint.
 
 ## Current Scope
 
-Implemented in Sprint 1 foundation:
+Implemented through Sprint 2:
 
 - Next.js 15 App Router.
 - TypeScript strict mode.
@@ -15,10 +15,17 @@ Implemented in Sprint 1 foundation:
 - Firebase Admin SDK helper.
 - Firebase Auth emulator configuration.
 - Firestore emulator configuration.
+- Google sign-in client flow.
+- Email/password sign-in flow when the provider is enabled in Firebase.
+- Logout.
+- Client auth state provider.
+- Protected dashboard route at `/dashboard`.
+- `users/{uid}` profile creation after first login.
+- User-owned profile read/update rules.
 - Environment variable parsing.
 - Basic mobile-first app shell.
 - Basic health endpoint at `/api/health`.
-- Basic authenticated user context helper.
+- Authenticated user context helper for API routes.
 - Cloud Run-compatible standalone build configuration.
 
 Not implemented yet:
@@ -75,6 +82,18 @@ Open:
 http://localhost:3000
 ```
 
+Sign in:
+
+```text
+http://localhost:3000/login
+```
+
+Protected dashboard:
+
+```text
+http://localhost:3000/dashboard
+```
+
 Health check:
 
 ```text
@@ -86,6 +105,42 @@ Firebase Emulator UI:
 ```text
 http://localhost:4000
 ```
+
+## Local Auth and Firestore Emulator Testing
+
+Use `.env.local.example` for emulator-safe local development. The example project ID and Firebase browser config are demo values and must not be replaced with production secrets for local tests.
+
+Start the emulators before signing in:
+
+```bash
+npm run emulators
+```
+
+For Google sign-in, use the emulator popup flow from `/login`. For email/password sign-in, enable the Email/Password provider in the Auth emulator UI and create a local test user there first. Then sign in from `/login` with that local user.
+
+After the first successful login, verify in the Firestore emulator UI that a document exists at:
+
+```text
+users/{uid}
+```
+
+The profile document contains:
+
+```text
+displayName
+email
+photoUrl
+locale
+countryCode
+favoriteTeamIds
+followedTeamIds
+globalLeaderboardOptIn
+consent
+createdAt
+updatedAt
+```
+
+The dashboard profile form updates only the signed-in user's own document. Firestore rules reject reads and writes for other user IDs and reject profile documents outside the expected shape.
 
 ## Verification
 
