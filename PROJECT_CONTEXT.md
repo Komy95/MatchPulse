@@ -25,7 +25,7 @@ Regular leagues and Champions League can be supported later, but MVP implementat
 - Firebase-authenticated user profiles.
 - Private groups with owner/admin/member roles.
 - Invite links or invite codes for joining groups.
-- Group settings for scoring preset, prediction mode, lock policy, booster availability, and prediction visibility.
+- Group seasons for scoring preset, prediction mode, booster availability, and prediction visibility.
 - Bulk exact-score prediction entry.
 - Prediction editing only before `lock_at`.
 - Prediction revision history.
@@ -149,10 +149,12 @@ Core entities:
 - `users/{userId}`
 - `groups/{groupId}`
 - `groups/{groupId}/members/{userId}`
-- `groups/{groupId}/invites/{inviteId}`
-- `groups/{groupId}/predictions/{predictionId}`
-- `groups/{groupId}/predictionRevisions/{revisionId}`
-- `groups/{groupId}/leaderboardSnapshots/{snapshotId}`
+- `groups/{groupId}/seasons/{groupSeasonId}`
+- `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}`
+- `inviteCodes/{code}`
+- `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}`
+- `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}`
+- `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`
 - `competitions/{competitionId}`
 - `seasons/{seasonId}`
 - `teams/{teamId}`
@@ -174,12 +176,14 @@ Use REST-first route handlers under `/api/v1`.
 Core MVP endpoints:
 
 - `POST /api/v1/groups`
+- `GET /api/v1/groups`
 - `GET /api/v1/groups/{groupId}`
-- `PATCH /api/v1/groups/{groupId}`
-- `POST /api/v1/groups/{groupId}/join`
-- `GET /api/v1/groups/{groupId}/matches`
-- `POST /api/v1/groups/{groupId}/predictions`
-- `GET /api/v1/groups/{groupId}/leaderboard`
+- `GET /api/v1/groups/{groupId}/seasons`
+- `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/invites`
+- `POST /api/v1/groups/join`
+- `GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches`
+- `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions`
+- `GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard`
 - `GET /api/v1/leaderboard/global`
 - `GET /api/v1/matches/{matchId}`
 - `GET /api/v1/matches/{matchId}/insight`
@@ -222,24 +226,25 @@ All API responses should use stable JSON contracts. Errors should use this shape
 ## Delivery Sequence
 
 1. Firebase/GCP foundation: app shell, Firebase Auth, Firestore model, security rules, local emulator plan, and Cloud Run-compatible runtime.
-2. Data abstraction: provider interface and Cloud Run Job-based normalized ingestion.
-3. Private groups: create, join, roles, invites.
-4. Preferences and personalized home: account setup preferences and team-news feed.
-5. Predictions and leaderboards: bulk upsert, lock checks, private scoring snapshots, global leaderboard snapshots.
-6. Team pages: cached public context with freshness metadata.
-7. AI insights: schema-bound insight generation and validation.
-8. Tournament simulator: public cached runs and authenticated custom runs.
-9. Ads, consent, and compliance.
+2. Auth and profile bootstrap: Firebase Auth, server-managed sessions, protected dashboard.
+3. Reusable groups and group seasons: create, join, roles, season-scoped invites.
+4. Data abstraction: provider interface and Cloud Run Job-based normalized ingestion.
+5. Preferences and personalized home: account setup preferences and team-news feed.
+6. Predictions and leaderboards: group-season bulk upsert, lock checks, private scoring snapshots, global leaderboard snapshots.
+7. Team pages: cached public context with freshness metadata.
+8. AI insights: schema-bound insight generation and validation.
+9. Tournament simulator: public cached runs and authenticated custom runs.
+10. Ads, consent, and compliance.
 
 ## Documentation Review
 
 ### Inconsistencies
 
-- Product name differs: the repository and agent instructions use `MatchPulse`, while `docs/PRD.md` names the product `FutureCast`. Implementation should use `MatchPulse` unless the product is intentionally renamed.
+- Product name is now consistently `MatchPulse` across current docs.
 - Route structure differs for team pages: `docs/ARCHITECTURE.md` places team pages under `app/(app)/teams/[teamId]/page.tsx`, while `tasks/ROADMAP.md` references `app/teams/[teamId]/page.tsx`.
 - Background job runtime is now Cloud Run Jobs triggered by Cloud Scheduler and Pub/Sub. Older job path references should be treated as historical and not implemented directly.
 - MVP surface count is described as five first-class surfaces, but the fifth combines team pages and simulator. Implementation planning should treat team pages and simulator as separate workstreams.
-- API docs include `GET /api/v1/groups/{groupId}/matches`, but the architecture route tree omits `groups/[groupId]/matches/route.ts`.
+- Future match, prediction, and leaderboard routes must stay scoped under `groups/{groupId}/seasons/{groupSeasonId}`.
 - `predictionMode` values use `EXACT_SCORE` and `THREE_WAY`, while scoring presets include `1X2 only`. The naming should be normalized before schema work.
 - Simulation model enum includes future models (`DIXON_COLES_V2`, `HYBRID_V3`) even though MVP specifies `ELO_POISSON_V1`. This is acceptable as future-proofing, but MVP code should only implement and expose `ELO_POISSON_V1`.
 - The docs mention a pricing page and premium no-ads path, but MVP release criteria only require consent-aware ads. Premium subscription implementation should remain out of initial MVP unless explicitly added.

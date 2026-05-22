@@ -2,7 +2,7 @@
 
 ## Product summary
 
-FutureCast is a private, friendly football prediction app for FIFA World Cup 2026. It helps friends, families, and office groups create private pools, submit match predictions, compare leaderboards, understand teams, and use explainable AI match previews and a transparent tournament simulator.
+MatchPulse is a private, friendly football prediction app for FIFA World Cup 2026. It helps friends, families, and office groups create private pools, submit match predictions, compare leaderboards, understand teams, and use explainable AI match previews and a transparent tournament simulator.
 
 ## Strategic position
 

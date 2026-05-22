@@ -2,7 +2,7 @@
 
 Cloud Firestore is the primary application database for MatchPulse MVP. The model is designed around access patterns, denormalized read models, and security boundaries rather than relational normalization.
 
-This document replaces the earlier SQL/RLS database model.
+This document is the canonical Firestore data model for the MVP.
 
 ## Data Modeling Principles
 
@@ -20,12 +20,14 @@ This document replaces the earlier SQL/RLS database model.
 | Collection or subcollection | Purpose | Read access | Write access |
 |---|---|---|---|
 | `users/{userId}` | App profile, preferences, privacy settings | Self, limited public fields through read models | Self for safe fields; server for privileged fields |
-| `groups/{groupId}` | Private group settings and summary fields | Active members | Owner/admin through server routes |
+| `groups/{groupId}` | Reusable private social container and summary fields | Active members | Server routes only |
 | `groups/{groupId}/members/{userId}` | Membership role and status | Active members | Server routes only |
-| `groups/{groupId}/invites/{inviteId}` | Invite tokens, expiry, revocation | Server-mediated | Owner/admin through server routes |
-| `groups/{groupId}/predictions/{predictionId}` | User predictions for group matches | Members according to visibility settings | User-owned writes through server routes |
-| `groups/{groupId}/predictionRevisions/{revisionId}` | Prediction audit history | Owner/admin or user-scoped views | Server routes only |
-| `groups/{groupId}/leaderboardSnapshots/{snapshotId}` | Versioned group standings | Active members | Scoring jobs only |
+| `groups/{groupId}/seasons/{groupSeasonId}` | Tournament/season-specific group instance | Active members | Server routes only |
+| `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}` | Season-scoped invite tokens, expiry, revocation | Server-mediated | Owner/admin through server routes |
+| `inviteCodes/{code}` | Server-only invite code uniqueness and lookup registry | None | Server routes only |
+| `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` | Future user predictions for group-season matches | Members according to visibility settings | User-owned writes through server routes |
+| `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` | Future prediction audit history | Owner/admin or user-scoped views | Server routes only |
+| `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Future versioned group-season standings | Active members | Scoring jobs only |
 | `competitions/{competitionId}` | FIFA World Cup and future competitions | Public | Server jobs/admin only |
 | `seasons/{seasonId}` | Competition season or tournament instance | Public | Server jobs/admin only |
 | `teams/{teamId}` | Country or club teams | Public | Server jobs/admin only |
@@ -65,24 +67,20 @@ Do not expose email through public leaderboard or group read models.
 
 ### `groups/{groupId}`
 
-Stores group settings and denormalized summary fields.
+Stores the reusable social container. Members belong to the group and can be reused across future tournaments or league seasons.
 
 Fields:
 
 - `name`
 - `slug`
-- `competitionId`
-- `seasonId`
 - `ownerId`
-- `scoringPreset`
-- `predictionMode`
-- `allowBooster`
-- `predictionVisibility`
-- `lockPolicy`
 - `memberCount`
-- `latestLeaderboardSnapshotId`
+- `activeGroupSeasonId`
 - `createdAt`
 - `updatedAt`
+- `archivedAt`
+
+Do not store scoring rules, prediction rules, match picks, or leaderboards directly on the group. Those belong to a group season.
 
 ### `groups/{groupId}/members/{userId}`
 
@@ -90,6 +88,7 @@ Fields:
 
 - `userId`
 - `displayName`
+- `photoUrl`
 - `role`: `OWNER`, `ADMIN`, or `MEMBER`
 - `status`: `ACTIVE`, `LEFT`, or `REMOVED`
 - `joinedAt`
@@ -97,7 +96,67 @@ Fields:
 
 Display name is denormalized so group member lists and leaderboard snapshots do not need to read every user profile.
 
-### `groups/{groupId}/predictions/{predictionId}`
+### `groups/{groupId}/seasons/{groupSeasonId}`
+
+Stores the competition/tournament-specific instance for a reusable group.
+
+Sprint 3 creates one default group season for every group:
+
+- `competitionId`: `fifa-world-cup`
+- `seasonId`: `world-cup-2026`
+- `label`: `FIFA World Cup 2026`
+- `status`: `UPCOMING`
+- `scoringPreset`: `HYBRID_321`
+- `predictionMode`: `EXACT_SCORE`
+- `allowBooster`: `true`
+- `predictionVisibility`: `AFTER_LOCK`
+
+Fields:
+
+- `groupId`
+- `competitionId`
+- `seasonId`
+- `label`
+- `status`: `UPCOMING`, `ACTIVE`, `COMPLETED`, or `ARCHIVED`
+- `scoringPreset`
+- `predictionMode`
+- `allowBooster`
+- `predictionVisibility`
+- `createdAt`
+- `updatedAt`
+- `startsAt`
+- `endsAt`
+
+### `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}`
+
+Stores season-scoped invite metadata. Invite documents are never client-readable in MVP; validation is server-mediated.
+
+Fields:
+
+- `code`
+- `groupId`
+- `groupSeasonId`
+- `createdBy`
+- `createdAt`
+- `expiresAt`
+- `revokedAt`
+- `usageCount`
+
+### `inviteCodes/{code}`
+
+Server-only registry used to make short invite codes unique and to resolve a code to the season-scoped invite document without ambiguous collection-group reads.
+
+Fields:
+
+- `code`
+- `groupId`
+- `groupSeasonId`
+- `inviteId`
+- `createdAt`
+- `expiresAt`
+- `revokedAt`
+
+### `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}`
 
 Recommended ID pattern: `{matchId}_{userId}` for idempotent upserts.
 
@@ -117,7 +176,7 @@ Fields:
 
 Keep `lockAt` copied from the match at save time for auditability, but validate against the canonical match document in server routes.
 
-### `groups/{groupId}/predictionRevisions/{revisionId}`
+### `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}`
 
 Fields:
 
@@ -130,12 +189,13 @@ Fields:
 - `changedBy`
 - `reason`
 
-### `groups/{groupId}/leaderboardSnapshots/{snapshotId}`
+### `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`
 
 Fields:
 
 - `snapshotAt`
 - `matchId`
+- `groupSeasonId`
 - `scoringPreset`
 - `entries`
 - `generatedByJobId`
@@ -258,9 +318,11 @@ Private documents:
 - `users/{userId}` private fields
 - `groups/{groupId}`
 - group members
-- group predictions
-- prediction revisions
-- group leaderboard snapshots
+- group seasons
+- season-scoped invites
+- group-season predictions
+- group-season prediction revisions
+- group-season leaderboard snapshots
 - private/custom simulation runs
 
 Public read models must not contain private group names, private prediction values, emails, or hidden profile fields.
@@ -274,9 +336,11 @@ Do not create `firestore.indexes.json` during documentation-only work. These are
 | Upcoming matches by season | `matches` | `seasonId ASC, kickoffAt ASC` |
 | Matches by stage/group | `matches` | `seasonId ASC, stage ASC, groupCode ASC, kickoffAt ASC` |
 | Active group members | `groups/{groupId}/members` | `status ASC, role ASC` |
-| User predictions in a group | `groups/{groupId}/predictions` | `userId ASC, matchId ASC` |
-| Match predictions in a group | `groups/{groupId}/predictions` | `matchId ASC, userId ASC` |
-| Group leaderboard snapshots | `groups/{groupId}/leaderboardSnapshots` | `snapshotAt DESC` |
+| Group seasons | `groups/{groupId}/seasons` | `createdAt ASC` |
+| Invite code lookup | `inviteCodes` | document ID equals normalized code |
+| User predictions in a group season | `groups/{groupId}/seasons/{groupSeasonId}/predictions` | `userId ASC, matchId ASC` |
+| Match predictions in a group season | `groups/{groupId}/seasons/{groupSeasonId}/predictions` | `matchId ASC, userId ASC` |
+| Group-season leaderboard snapshots | `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots` | `snapshotAt DESC` |
 | Team metric snapshots | `teamMetricSnapshots` | `teamId ASC, metricDate DESC, source ASC` |
 | News by team and language | `newsItems` | `teamIds ARRAY_CONTAINS, language ASC, publishedAt DESC` |
 | Public simulation by competition | `simulationRuns` | `visibility ASC, competitionId ASC, generatedAt DESC` |

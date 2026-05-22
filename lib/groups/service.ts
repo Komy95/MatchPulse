@@ -18,6 +18,7 @@ import type {
   GroupDocument,
   GroupInviteDocument,
   GroupInviteSummary,
+  InviteCodeRegistryDocument,
   GroupMemberDocument,
   GroupMemberSummary,
   GroupRole,
@@ -31,16 +32,32 @@ type CreateGroupInput = {
 };
 
 const inviteCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const inviteCodeMaxAttempts = 8;
 
 export async function createGroup(input: CreateGroupInput, user: AuthenticatedUserContext) {
+  for (let attempt = 0; attempt < inviteCodeMaxAttempts; attempt += 1) {
+    try {
+      return await createGroupAttempt(input, user);
+    } catch (error) {
+      if (!isAlreadyExistsError(error) || attempt === inviteCodeMaxAttempts - 1) {
+        throw error;
+      }
+    }
+  }
+
+  throw new ApiError("INVITE_CODE_COLLISION", "Could not allocate an invite code.");
+}
+
+async function createGroupAttempt(input: CreateGroupInput, user: AuthenticatedUserContext) {
   const firestore = getFirebaseAdminFirestore();
   const groupRef = firestore.collection("groups").doc();
   const groupSeasonRef = groupRef.collection("seasons").doc();
   const ownerMemberRef = groupRef.collection("members").doc(user.uid);
   const inviteRef = groupSeasonRef.collection("invites").doc();
+  const inviteCode = generateInviteCode();
+  const inviteRegistryRef = firestore.collection("inviteCodes").doc(inviteCode);
   const now = FieldValue.serverTimestamp();
   const slug = `${slugify(input.name)}-${groupRef.id.slice(0, 6).toLowerCase()}`;
-  const inviteCode = generateInviteCode();
   const inviteExpiresAt = Timestamp.fromDate(new Date(Date.now() + inviteTtlMs));
   const startsAt = Timestamp.fromDate(new Date(worldCup2026Season.startsAtIso));
   const endsAt = Timestamp.fromDate(new Date(worldCup2026Season.endsAtIso));
@@ -93,6 +110,15 @@ export async function createGroup(input: CreateGroupInput, user: AuthenticatedUs
     expiresAt: inviteExpiresAt,
     revokedAt: null,
     usageCount: 0,
+  });
+  batch.create(inviteRegistryRef, {
+    code: inviteCode,
+    groupId: groupRef.id,
+    groupSeasonId: groupSeasonRef.id,
+    inviteId: inviteRef.id,
+    createdAt: now,
+    expiresAt: inviteExpiresAt,
+    revokedAt: null,
   });
 
   await batch.commit();
@@ -214,18 +240,11 @@ export async function createGroupSeasonInvite(
   }
 
   const inviteRef = seasonRef.collection("invites").doc();
-  const inviteCode = generateInviteCode();
-  const expiresAt = Timestamp.fromDate(new Date(Date.now() + inviteTtlMs));
-
-  await inviteRef.set({
-    code: inviteCode,
+  const { code: inviteCode, expiresAt } = await createReservedInvite({
     groupId,
     groupSeasonId,
+    inviteId: inviteRef.id,
     createdBy: user.uid,
-    createdAt: FieldValue.serverTimestamp(),
-    expiresAt,
-    revokedAt: null,
-    usageCount: 0,
   });
 
   return {
@@ -244,25 +263,37 @@ export async function createGroupSeasonInvite(
 
 export async function joinGroupByInvite(code: string, user: AuthenticatedUserContext) {
   const firestore = getFirebaseAdminFirestore();
-  const inviteSnap = await firestore
-    .collectionGroup("invites")
-    .where("code", "==", code)
-    .limit(1)
-    .get();
+  const inviteRegistrySnap = await firestore.collection("inviteCodes").doc(code).get();
 
-  if (inviteSnap.empty) {
+  if (!inviteRegistrySnap.exists) {
     throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
   }
 
-  const inviteDoc = inviteSnap.docs[0];
+  const inviteRegistry = inviteRegistrySnap.data() as InviteCodeRegistryDocument;
+  const inviteDoc = await firestore
+    .collection("groups")
+    .doc(inviteRegistry.groupId)
+    .collection("seasons")
+    .doc(inviteRegistry.groupSeasonId)
+    .collection("invites")
+    .doc(inviteRegistry.inviteId)
+    .get();
+
+  if (!inviteDoc.exists) {
+    throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
+  }
+
   const invite = inviteDoc.data() as GroupInviteDocument;
   const now = Timestamp.now();
 
-  if (invite.revokedAt) {
+  if (invite.revokedAt || inviteRegistry.revokedAt) {
     throw new ApiError("INVITE_REVOKED", "Invite code is invalid.");
   }
 
-  if (invite.expiresAt.toMillis() <= now.toMillis()) {
+  if (
+    invite.expiresAt.toMillis() <= now.toMillis() ||
+    inviteRegistry.expiresAt.toMillis() <= now.toMillis()
+  ) {
     throw new ApiError("INVITE_EXPIRED", "Invite code is invalid.");
   }
 
@@ -286,6 +317,10 @@ export async function joinGroupByInvite(code: string, user: AuthenticatedUserCon
 
     if (existingMember?.status === "ACTIVE") {
       return;
+    }
+
+    if (existingMember?.status === "REMOVED") {
+      throw new ApiError("INVITE_INVALID", "Invite code is invalid.");
     }
 
     transaction.set(
@@ -319,6 +354,74 @@ export async function joinGroupByInvite(code: string, user: AuthenticatedUserCon
     membershipStatus: "ACTIVE" as const,
     role: member?.role ?? "MEMBER",
   };
+}
+
+async function createReservedInvite({
+  groupId,
+  groupSeasonId,
+  inviteId,
+  createdBy,
+}: {
+  groupId: string;
+  groupSeasonId: string;
+  inviteId: string;
+  createdBy: string;
+}) {
+  const firestore = getFirebaseAdminFirestore();
+  const expiresAt = Timestamp.fromDate(new Date(Date.now() + inviteTtlMs));
+
+  for (let attempt = 0; attempt < inviteCodeMaxAttempts; attempt += 1) {
+    const code = generateInviteCode();
+
+    try {
+      await firestore.runTransaction(async (transaction) => {
+        const registryRef = firestore.collection("inviteCodes").doc(code);
+        const inviteRef = firestore
+          .collection("groups")
+          .doc(groupId)
+          .collection("seasons")
+          .doc(groupSeasonId)
+          .collection("invites")
+          .doc(inviteId);
+        const registrySnap = await transaction.get(registryRef);
+
+        if (registrySnap.exists) {
+          throw new ApiError("INVITE_CODE_COLLISION", "Invite code collision.");
+        }
+
+        transaction.create(inviteRef, {
+          code,
+          groupId,
+          groupSeasonId,
+          createdBy,
+          createdAt: FieldValue.serverTimestamp(),
+          expiresAt,
+          revokedAt: null,
+          usageCount: 0,
+        });
+        transaction.create(registryRef, {
+          code,
+          groupId,
+          groupSeasonId,
+          inviteId,
+          createdAt: FieldValue.serverTimestamp(),
+          expiresAt,
+          revokedAt: null,
+        });
+      });
+
+      return { code, expiresAt };
+    } catch (error) {
+      if (
+        !(error instanceof ApiError && error.code === "INVITE_CODE_COLLISION") ||
+        attempt === inviteCodeMaxAttempts - 1
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  throw new ApiError("INVITE_CODE_COLLISION", "Could not allocate an invite code.");
 }
 
 async function requireActiveMembership(groupId: string, userId: string) {
@@ -428,6 +531,16 @@ function generateInviteCode() {
     const index = crypto.randomInt(0, inviteCodeAlphabet.length);
     return inviteCodeAlphabet[index];
   }).join("");
+}
+
+function isAlreadyExistsError(error: unknown) {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const maybeError = error as { code?: unknown; message?: unknown };
+
+  return maybeError.code === 6 || String(maybeError.message ?? "").includes("ALREADY_EXISTS");
 }
 
 function slugify(value: string) {

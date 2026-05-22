@@ -101,6 +101,10 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /inviteCodes/{code} {
+      allow read, write: if false;
+    }
+
     match /groups/{groupId} {
       allow read: if isActiveGroupMember(groupId);
       allow write: if false;

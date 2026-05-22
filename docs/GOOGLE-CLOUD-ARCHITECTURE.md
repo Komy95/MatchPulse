@@ -139,6 +139,7 @@ Logs should include job IDs, provider names, match IDs, group IDs when safe, and
 
 Use `NEXT_PUBLIC_` only for values safe to expose to browsers:
 
+- `APP_ENV` is not secret, but should be set to `staging` or `production` in deployed environments to enable stricter validation.
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
@@ -149,6 +150,7 @@ Use `NEXT_PUBLIC_` only for values safe to expose to browsers:
 
 Use server-only variables for runtime configuration:
 
+- `APP_ENV`
 - `GOOGLE_CLOUD_PROJECT`
 - `FIREBASE_PROJECT_ID`
 - `SPORTS_PROVIDER`
@@ -185,6 +187,8 @@ Separation rules:
 - Separate Cloud Run services and jobs.
 - Separate ad/analytics configuration where possible.
 - Staging may use provider sandbox keys or lower-cost data plans.
+
+Set `APP_ENV=staging` or `APP_ENV=production` for deployed runtimes. In those modes the app fails fast unless required Firebase public client variables and a server project ID are present. Keep `APP_ENV=local` for emulator development.
 
 ## Deployment Flow
 

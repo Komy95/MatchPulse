@@ -33,29 +33,28 @@ This roadmap is documentation guidance only. Do not create implementation files,
 | Simulator | Public and custom probability runs stored in Firestore | simulator domain, simulation jobs |
 | Commercial hardening | Ads, consent, attribution, legal pages | ad components, privacy pages, consent model |
 
-## Sprint 1: Firebase/GCP Foundation
+## Sprint 1: Technical Foundation
 
-Future implementation should establish:
+Implemented foundation:
 
 - Next.js 15 App Router.
-- TypeScript.
+- TypeScript strict mode.
 - Tailwind CSS.
 - Firebase client SDK setup.
 - Firebase Admin SDK server setup.
 - Firestore emulator setup.
 - Firebase Auth emulator setup.
-- Initial Firestore data model.
 - Initial Firestore Security Rules.
-- Initial Firestore index definitions based on implemented queries.
 - Cloud Run-compatible project structure.
-- PWA readiness plan for future manifest, app icon, theme color, standalone display mode, offline app shell, and safe caching boundaries.
 - Environment variable templates based on `templates/env.example`.
 - Local development documentation.
-- Staging and production Firebase/GCP project separation.
-- Native app packaging remains post-MVP and must not be scaffolded in Sprint 1.
-- Capacitor wrapper is the selected post-MVP / Phase 2 distribution path for Apple App Store and Google Play Store.
+- Basic app shell and health endpoint.
 
-Do not create these files during documentation-only work. This sprint describes future implementation.
+Still deferred:
+
+- Firestore index definitions beyond implemented query needs.
+- PWA manifest/service worker.
+- Production Firebase/GCP project setup.
 
 ## Mobile/PWA Prerequisite
 
@@ -85,7 +84,44 @@ Required before UI implementation:
 - Confirm card, button, form, empty state, loading state, motion, and accessibility guidance.
 - Confirm no betting/casino visual patterns, generic fantasy sports clutter, or unlicensed FIFA/team assets.
 
-## Sprint 2: Data Abstraction
+## Sprint 2: Auth, Profile Bootstrap, and Session Hardening
+
+Implemented:
+
+- Firebase Auth client flow.
+- Google sign-in as MVP default.
+- Email/password sign-in as local/test fallback.
+- Server-managed Firebase session cookies through `/api/auth/session`.
+- Server-side logout through `/api/auth/logout`.
+- Protected dashboard route.
+- `users/{uid}` profile bootstrap from verified Firebase token.
+- User-owned profile preference updates.
+- Conservative profile-focused Firestore rules.
+
+## Sprint 3: Reusable Groups, Group Seasons, and Invites
+
+Implemented:
+
+- Reusable `groups/{groupId}` social container.
+- Group members under `groups/{groupId}/members/{userId}`.
+- Initial FIFA World Cup 2026 group season under `groups/{groupId}/seasons/{groupSeasonId}`.
+- Season-scoped invites under `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}`.
+- Server-only invite code registry under `inviteCodes/{code}`.
+- REST routes for group create/list/detail, group seasons, invite creation, and join by code.
+- Member-gated Firestore reads and server-only group/member/season/invite mutations.
+- Mobile-first dashboard, create group, group detail, invite, and join screens.
+
+## Stabilization: Sprint 1-3 Foundation
+
+Current stabilization pass:
+
+- Align documentation with the implemented Firebase/Auth/Groups architecture.
+- Make group-season scoping canonical for future predictions and leaderboards.
+- Harden invite code uniqueness, member-count behavior, and rejoin rules.
+- Strengthen local vs staging/production environment validation.
+- Add lightweight validation coverage and documented emulator checks.
+
+## Sprint 4: Data Abstraction
 
 Future implementation should establish:
 
@@ -95,19 +131,7 @@ Future implementation should establish:
 - Firestore write model for competitions, seasons, teams, matches, and freshness metadata.
 - Pub/Sub event plan for provider updates.
 
-## Sprint 3: Private Groups
-
-Future implementation should establish:
-
-- Group create route.
-- Invite generation and join route.
-- Firestore membership model.
-- Owner/admin/member roles.
-- Group settings validation.
-- Firestore Security Rules for member reads.
-- Server-side validation for admin writes.
-
-## Sprint 4: Preferences and Dashboard
+## Sprint 5: Preferences and Dashboard
 
 Future implementation should establish:
 
@@ -118,19 +142,20 @@ Future implementation should establish:
 - Next action priority model.
 - Dashboard modules for picks, locks, standings, global rank, news, insights, and simulator.
 
-## Sprint 5: Predictions and Leaderboards
+## Sprint 6: Predictions and Leaderboards
 
 Future implementation should establish:
 
 - Bulk prediction upsert through Cloud Run route handlers.
+- Prediction documents under `groups/{groupId}/seasons/{groupSeasonId}/predictions`.
 - UTC lock enforcement.
 - Prediction revision history.
 - Hybrid 3-2-1 scoring.
-- Private group leaderboard snapshots.
+- Private group-season leaderboard snapshots.
 - Global leaderboard snapshots for opted-in users.
 - Cloud Run scoring jobs triggered by final match updates.
 
-## Sprint 6: Team Pages and AI Insights
+## Sprint 7: Team Pages and AI Insights
 
 Future implementation should establish:
 
@@ -142,7 +167,7 @@ Future implementation should establish:
 - Firestore insight caching and invalidation.
 - Cloud Run insight refresh jobs.
 
-## Sprint 7: Tournament Simulator
+## Sprint 8: Tournament Simulator
 
 Future implementation should establish:
 
@@ -153,7 +178,7 @@ Future implementation should establish:
 - Firestore simulation run storage.
 - Simulator dashboard/team page links.
 
-## Sprint 8: Ads, Consent, and Compliance
+## Sprint 9: Ads, Consent, and Compliance
 
 Future implementation should establish:
 

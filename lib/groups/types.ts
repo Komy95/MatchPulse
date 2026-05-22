@@ -52,6 +52,16 @@ export type GroupInviteDocument = {
   usageCount: number;
 };
 
+export type InviteCodeRegistryDocument = {
+  code: string;
+  groupId: string;
+  groupSeasonId: string;
+  inviteId: string;
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+  revokedAt: Timestamp | null;
+};
+
 export type GroupSeasonSummary = {
   id: string;
   competitionId: string;

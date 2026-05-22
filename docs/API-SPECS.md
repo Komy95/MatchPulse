@@ -27,25 +27,36 @@
 
 ## Core Endpoints
 
+Implemented through Sprint 3:
+
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
-| `/api/v1/groups` | POST | Authenticated | Create group |
+| `/api/auth/session` | POST | Firebase ID token | Create server-managed Firebase session cookie |
+| `/api/auth/logout` | POST | Session | Clear server-managed session cookie |
+| `/api/v1/groups` | GET | Authenticated | List groups where the user is an active member |
+| `/api/v1/groups` | POST | Authenticated | Create reusable group, owner membership, first World Cup 2026 group season, and initial invite |
 | `/api/v1/groups/{groupId}` | GET | Member | Group detail |
-| `/api/v1/groups/{groupId}` | PATCH | Owner/Admin | Update settings |
-| `/api/v1/groups/{groupId}/join` | POST | Authenticated | Join by invite |
-| `/api/v1/groups/{groupId}/matches` | GET | Member | Group-scoped matches |
-| `/api/v1/groups/{groupId}/predictions` | POST | Member | Bulk prediction upsert |
-| `/api/v1/groups/{groupId}/leaderboard` | GET | Member | Group leaderboard |
-| `/api/v1/leaderboard/global` | GET | Public/Auth optional | Global leaderboard read model |
-| `/api/v1/matches/{matchId}` | GET | Public or member | Match detail |
-| `/api/v1/matches/{matchId}/insight` | GET | Public or member | AI insight |
-| `/api/v1/news` | GET | Public/Auth optional | Personalized or generic team news |
-| `/api/v1/profile/preferences` | GET | Authenticated | User preferences |
-| `/api/v1/profile/preferences` | PATCH | Authenticated | Update user preferences |
-| `/api/v1/teams/{teamId}` | GET | Public | Team page data |
-| `/api/v1/simulations` | POST | Authenticated | Start custom simulation |
-| `/api/v1/simulations/{simulationId}` | GET | Requester or public | Simulation result |
-| `/api/v1/simulations/public/world-cup-2026` | GET | Public | Cached public simulation |
+| `/api/v1/groups/{groupId}/seasons` | GET | Member | List seasons for a reusable group |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/invites` | POST | Owner/Admin | Create a season-scoped invite |
+| `/api/v1/groups/join` | POST | Authenticated | Join by invite code |
+
+Future endpoints must keep group-season scoping:
+
+| Endpoint | Method | Auth | Purpose |
+|---|---|---|---|
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches` | GET | Member | Group-season scoped matches |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions` | POST | Member | Bulk prediction upsert |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard` | GET | Member | Group-season leaderboard |
+| `/api/v1/leaderboard/global` | GET | Public/Auth optional | Future global leaderboard read model |
+| `/api/v1/matches/{matchId}` | GET | Public or member | Future match detail |
+| `/api/v1/matches/{matchId}/insight` | GET | Public or member | Future AI insight |
+| `/api/v1/news` | GET | Public/Auth optional | Future personalized or generic team news |
+| `/api/v1/profile/preferences` | GET | Authenticated | Future user preferences API |
+| `/api/v1/profile/preferences` | PATCH | Authenticated | Future user preferences API |
+| `/api/v1/teams/{teamId}` | GET | Public | Future team page data |
+| `/api/v1/simulations` | POST | Authenticated | Future custom simulation |
+| `/api/v1/simulations/{simulationId}` | GET | Requester or public | Future simulation result |
+| `/api/v1/simulations/public/world-cup-2026` | GET | Public | Future cached public simulation |
 
 ## Server Validation Requirements
 
@@ -68,12 +79,7 @@ Request:
 
 ```json
 {
-  "name": "WM 2026 Family Pool",
-  "competitionCode": "FIFA_WC_2026",
-  "predictionMode": "EXACT_SCORE",
-  "scoringPreset": "HYBRID_321",
-  "allowBooster": true,
-  "showPredictionsAfterLock": false
+  "name": "WM 2026 Family Pool"
 }
 ```
 
@@ -81,32 +87,35 @@ Response:
 
 ```json
 {
-  "id": "grp_01JX...",
-  "slug": "wm-2026-family-pool",
-  "inviteCode": "8YQ2K9P4",
-  "ownerRole": "OWNER"
+  "group": {
+    "id": "grp_01JX...",
+    "slug": "wm-2026-family-pool",
+    "activeGroupSeasonId": "seasonDocId",
+    "inviteCode": "8YQ2K9P4",
+    "inviteUrl": "http://localhost:3000/join?code=8YQ2K9P4",
+    "ownerRole": "OWNER"
+  }
 }
 ```
 
 Validation:
 
 - `name` is required.
-- `competitionCode` must exist in Firestore reference data.
-- `scoringPreset` must be supported.
+- Initial group season is created with `competitionId=fifa-world-cup` and `seasonId=world-cup-2026`.
 - Authenticated user becomes owner.
-- Group and owner membership are written atomically where possible.
+- Group, owner membership, group season, invite, and invite-code registry are written atomically where possible.
 
 ## Join Group
 
 ```http
-POST /api/v1/groups/{groupId}/join
+POST /api/v1/groups/join
 ```
 
 Request:
 
 ```json
 {
-  "inviteCode": "8YQ2K9P4"
+  "code": "8YQ2K9P4"
 }
 ```
 
@@ -114,23 +123,64 @@ Response:
 
 ```json
 {
-  "groupId": "grp_01JX...",
-  "membershipStatus": "ACTIVE",
-  "role": "MEMBER"
+  "membership": {
+    "groupId": "grp_01JX...",
+    "groupSeasonId": "seasonDocId",
+    "membershipStatus": "ACTIVE",
+    "role": "MEMBER"
+  }
 }
 ```
 
 Edge cases:
 
 - Duplicate joins return current membership.
-- Revoked or expired invites are rejected.
-- Removed users may need admin approval before rejoin.
-- Invalid invites must not leak private group data.
+- A `LEFT` member is reactivated and increments `memberCount` because they were not active.
+- A `REMOVED` member is denied rejoin through invite.
+- Revoked invites return `INVITE_REVOKED`.
+- Expired invites return `INVITE_EXPIRED`.
+- Invalid invites return `INVITE_INVALID`.
+- Invalid invite responses must not leak private group or season data.
+
+## Create Season Invite
+
+```http
+POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/invites
+```
+
+Request:
+
+```json
+{
+  "refresh": true
+}
+```
+
+Response:
+
+```json
+{
+  "invite": {
+    "id": "inviteDocId",
+    "code": "8YQ2K9P4",
+    "inviteUrl": "http://localhost:3000/join?code=8YQ2K9P4",
+    "expiresAt": "2026-06-21T12:00:00.000Z",
+    "usageCount": 0
+  }
+}
+```
+
+Rules:
+
+- User must be an active group member with `OWNER` or `ADMIN` role.
+- Invite is scoped to the group season.
+- Invite code is reserved in `inviteCodes/{code}` to avoid collisions.
+- Normal members cannot create invites.
 
 ## Bulk Upsert Predictions
 
 ```http
-POST /api/v1/groups/{groupId}/predictions
+POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions
 ```
 
 Request:
@@ -161,8 +211,8 @@ Response:
 
 Rules:
 
-- User must be an active member.
-- Match must belong to the group competition.
+- User must be an active group member.
+- Match must belong to the group season competition/season.
 - Reject predictions where `now >= lockAt`.
 - Store revision history.
 - Save operation must be idempotent.
@@ -171,7 +221,7 @@ Rules:
 ## Leaderboard
 
 ```http
-GET /api/v1/groups/{groupId}/leaderboard
+GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard
 ```
 
 Response:

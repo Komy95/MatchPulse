@@ -75,7 +75,7 @@ Clients cannot write public reference data. Writes are server-only.
 
 ### Private Groups
 
-Group documents at `groups/{groupId}` are readable only by active members.
+Group documents at `groups/{groupId}` are reusable social containers and are readable only by active members.
 
 Membership is checked through:
 
@@ -85,7 +85,13 @@ groups/{groupId}/members/{request.auth.uid}
 
 The member document must exist and have `status == "ACTIVE"`.
 
-Group settings can only be changed by owners/admins through protected Cloud Run routes. Direct client writes to group settings should be denied or restricted to a small set of safe fields if a future UX requires it.
+Group, member, group-season, invite, invite-code registry, prediction, revision, and leaderboard mutations are denied from clients in MVP and must go through protected Cloud Run routes or jobs.
+
+### Group Seasons
+
+Group seasons at `groups/{groupId}/seasons/{groupSeasonId}` hold tournament/season-specific settings such as scoring preset, prediction mode, booster availability, and prediction visibility.
+
+Active group members can read group seasons for their group. Clients cannot write group season documents directly.
 
 ### Group Members
 
@@ -113,6 +119,14 @@ Invite validation should be server-mediated because rules alone cannot safely ha
 - Rate limiting.
 - Invite token secrecy.
 
+Sprint 3 uses season-scoped invite documents at:
+
+```text
+groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}
+```
+
+It also uses a server-only `inviteCodes/{code}` registry for code uniqueness and lookup. Clients cannot read or write either collection.
+
 ### Predictions
 
 Users can write only their own predictions, and only through server-validated routes for MVP.
@@ -131,7 +145,7 @@ However, Firestore Security Rules alone are insufficient for complete prediction
 - Match belongs to the group's competition.
 - Idempotent revision creation.
 
-Therefore, direct client writes to `groups/{groupId}/predictions/{predictionId}` should be denied for MVP unless the implementation can prove equivalent validation in both rules and server tests.
+Therefore, direct client writes to `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` should be denied for MVP unless the implementation can prove equivalent validation in both rules and server tests.
 
 ### Prediction Revisions
 

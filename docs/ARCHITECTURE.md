@@ -88,14 +88,15 @@ Examples:
 
 - Group settings
 - Members and roles
-- Invites
-- Group-scoped leaderboard snapshots
-- Group-scoped prediction visibility settings
+- Group seasons
+- Season-scoped invites
+- Group-season leaderboard snapshots
+- Group-season prediction visibility and scoring settings
 
 Rules:
 
 - Readable only by active group members.
-- Group settings mutable only by owner/admin through server-validated routes.
+- Group, member, season, and invite mutations are server-only through validated routes.
 - Firestore Security Rules enforce membership checks for direct client reads.
 - Server routes still validate role, invite status, and membership state.
 
@@ -161,7 +162,7 @@ Rules:
 | Domain | Responsibility | Suggested location |
 |---|---|---|
 | Auth | Firebase session, profile bootstrap, user context | `lib/auth/*` |
-| Groups | Pool creation, invites, memberships, admin settings | `lib/groups/*` |
+| Groups | Reusable group creation, group seasons, season-scoped invites, memberships, admin settings | `lib/groups/*` |
 | Predictions | Bulk upsert, lock enforcement, revision history | `lib/predictions/*` |
 | Scoring | Points, snapshots, ranking | `lib/scoring/*` |
 | Providers | Vendor abstraction and normalized data | `lib/providers/*` |
@@ -183,6 +184,8 @@ app/
   (app)/
     dashboard/page.tsx
     groups/[groupId]/page.tsx
+    groups/new/page.tsx
+    join/page.tsx
     matches/[matchId]/page.tsx
     teams/[teamId]/page.tsx
     simulator/page.tsx
@@ -190,10 +193,12 @@ app/
   api/v1/
     groups/route.ts
     groups/[groupId]/route.ts
-    groups/[groupId]/join/route.ts
+    groups/[groupId]/seasons/route.ts
+    groups/[groupId]/seasons/[groupSeasonId]/invites/route.ts
+    groups/join/route.ts
     groups/[groupId]/matches/route.ts
-    groups/[groupId]/predictions/route.ts
-    groups/[groupId]/leaderboard/route.ts
+    groups/[groupId]/seasons/[groupSeasonId]/predictions/route.ts
+    groups/[groupId]/seasons/[groupSeasonId]/leaderboard/route.ts
     leaderboard/global/route.ts
     matches/[matchId]/route.ts
     matches/[matchId]/insight/route.ts
@@ -259,6 +264,7 @@ Key rules:
 
 - Never expose server credentials client-side.
 - Only `NEXT_PUBLIC_FIREBASE_*` values may be exposed to the browser.
+- `APP_ENV=local` keeps emulator development permissive; `APP_ENV=staging` and `APP_ENV=production` fail fast when required Firebase values are missing.
 - Keep provider API keys and OpenAI keys in Secret Manager for deployed environments.
 - Protect cron/admin routes with `CRON_SECRET`.
 - Use consent mode for non-essential ads and analytics.

@@ -166,6 +166,7 @@ groups/{groupId}
 groups/{groupId}/members/{userId}
 groups/{groupId}/seasons/{groupSeasonId}
 groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}
+inviteCodes/{code}
 ```
 
 When a group is created, MatchPulse automatically creates the first group season:
@@ -193,6 +194,8 @@ POST /api/v1/groups/join
 ```
 
 Firestore rules allow active members to read their own groups, group members, and group seasons. Client writes to groups, members, group seasons, invites, predictions, prediction revisions, and leaderboard snapshots are denied for MVP.
+
+Invite codes are reserved in the server-only `inviteCodes/{code}` registry. Duplicate joins are idempotent, `LEFT` members rejoin as active members and increment `memberCount` once, and `REMOVED` members cannot rejoin through an invite code.
 
 After the first successful login, verify in the Firestore emulator UI that a document exists at:
 
@@ -246,6 +249,8 @@ Then validate:
 - Owner/admin can create an invite for the active group season.
 - Valid invite code joins the reusable group at `/join`.
 - Duplicate join returns active membership without creating a duplicate member.
+- A `LEFT` member can rejoin and increments `memberCount` only because they were not active.
+- A `REMOVED` member is denied rejoin through invite.
 - Invalid invite returns `INVITE_INVALID`, `INVITE_EXPIRED`, or `INVITE_REVOKED` without group details.
 - Member can read the active member list on the group detail page.
 - Client direct writes to group, member, group season, invite, prediction, revision, or leaderboard documents are denied by Firestore rules.
@@ -257,6 +262,7 @@ Run:
 ```bash
 npm run typecheck
 npm run lint
+npm run validate:foundation
 npm run build
 ```
 
@@ -266,11 +272,47 @@ Use `.env.local.example` for local development and `templates/env.example` as th
 
 Rules:
 
+- `APP_ENV=local` is the default and keeps emulator development permissive.
+- `APP_ENV=staging` and `APP_ENV=production` fail fast when required Firebase public config or the server project ID is missing.
 - Do not commit real secrets.
 - Only `NEXT_PUBLIC_*` variables may be exposed to browser code.
 - Use Firebase emulators for local Auth and Firestore development.
 - Use Secret Manager for deployed server secrets.
 - For deployed Firebase Admin SDK usage, prefer Application Default Credentials in the Cloud Run runtime.
+
+Required for local emulator development:
+
+```text
+APP_ENV=local
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_FIREBASE_API_KEY=demo-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=demo-matchpulse.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=matchpulse-local
+NEXT_PUBLIC_FIREBASE_APP_ID=demo-app-id
+FIREBASE_PROJECT_ID=matchpulse-local
+FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+```
+
+Required for staging/production runtime configuration:
+
+```text
+APP_ENV=staging
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+FIREBASE_PROJECT_ID= or GOOGLE_CLOUD_PROJECT=
+```
+
+Secret Manager-backed values for deployed environments:
+
+```text
+OPENAI_API_KEY
+SPORTS_PROVIDER_API_KEY
+CRON_SECRET
+```
 
 Optional local Firebase Admin SDK service account variables are supported by the helper but should only be used in untracked local environment files:
 

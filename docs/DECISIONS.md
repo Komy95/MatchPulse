@@ -65,3 +65,35 @@ Decision: Start with Elo-informed independent Poisson plus Monte Carlo.
 Reason: It is explainable, practical, fast, and good enough for first simulator release.
 
 Consequence: Persist model version, assumptions, input hash, run count, and generated timestamp so future model changes are auditable.
+
+## ADR-009: Use server-managed Firebase session cookies
+
+Decision: Browser Firebase Auth sign-in exchanges an ID token with `/api/auth/session`; the server verifies it with Firebase Admin SDK and sets `__session` as an HttpOnly Firebase session cookie. Logout clears the cookie through `/api/auth/logout`.
+
+Reason: Client-written auth cookies expose too much control to browser code. Server-managed session cookies keep App Router pages and API routes protected after refresh while preserving Firebase Auth as the identity provider.
+
+Consequence: Client code must never write `__session` directly. Server routes verify session cookies for page/API authentication and may still verify bearer ID tokens for API use cases.
+
+## ADR-010: Treat groups as reusable social containers
+
+Decision: `groups/{groupId}` represents the reusable social group, not one tournament pool.
+
+Reason: Users should be able to reuse the same group and membership for future competitions such as FIFA World Cup 2026, Bundesliga 2026/27, or Champions League 2026/27.
+
+Consequence: Group documents contain social/container fields only. Competition-specific settings, scoring rules, prediction mode, picks, revisions, invites, and leaderboard snapshots belong to a group season.
+
+## ADR-011: Use group seasons for tournament-specific state
+
+Decision: Tournament/season-specific state lives under `groups/{groupId}/seasons/{groupSeasonId}`.
+
+Reason: Group-season scoping prevents World Cup rules and future league rules from being mixed into the reusable group container.
+
+Consequence: Future prediction and leaderboard paths must use `groups/{groupId}/seasons/{groupSeasonId}/...`. Direct group-level prediction or leaderboard collections are outdated and should not be introduced.
+
+## ADR-012: Use season-scoped invites with a server-only code registry
+
+Decision: Invites are stored under `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}` and short code uniqueness is reserved in `inviteCodes/{code}`.
+
+Reason: The current product joins users into a reusable group through an active season invitation. A server-only registry avoids ambiguous collection-group lookups and provides deterministic code collision handling.
+
+Consequence: Invite reads and writes remain server-only. Invalid, expired, revoked, or removed-user invite failures must not reveal private group or season details.
