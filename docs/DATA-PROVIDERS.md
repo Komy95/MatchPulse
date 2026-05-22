@@ -57,9 +57,9 @@ Required normalized concepts:
 Cloud Run ingestion jobs write normalized data to Firestore collections such as:
 
 - `competitions/{competitionId}`
-- `seasons/{seasonId}`
-- `teams/{teamId}`
-- `matches/{matchId}`
+- `competitions/{competitionId}/seasons/{seasonId}`
+- `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}`
+- `competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}`
 - `teamMetricSnapshots/{snapshotId}`
 - `newsItems/{newsItemId}` if the source is licensed/compliant
 - `newsSources/{sourceId}`

@@ -19,6 +19,8 @@ Provider-specific response shapes must stay inside provider adapters. UI compone
 
 The local `MockSportsDataProvider` is the only Sprint 4 provider. It exists for tests and emulator-safe local development.
 
+For local prediction development, `npm run seed:reference` writes a small idempotent World Cup 2026 reference-data set to the Firestore emulator. It refuses to run against a deployed project unless `--allow-production` is passed intentionally.
+
 ## Canonical Firestore Model
 
 Sports data is public read, server write:

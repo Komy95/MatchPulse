@@ -11,7 +11,6 @@ import {
   defaultGroupSeason,
   inviteTtlMs,
   worldCup2026Season,
-  worldCupCompetition,
 } from "@/lib/groups/constants";
 import { evaluateInviteJoinPolicy } from "@/lib/groups/join-policy";
 import type {
@@ -64,17 +63,6 @@ async function createGroupAttempt(input: CreateGroupInput, user: AuthenticatedUs
   const endsAt = Timestamp.fromDate(new Date(worldCup2026Season.endsAtIso));
   const batch = firestore.batch();
 
-  batch.set(firestore.collection("competitions").doc(worldCupCompetition.id), {
-    name: worldCupCompetition.name,
-    updatedAt: now,
-  });
-  batch.set(firestore.collection("seasons").doc(worldCup2026Season.id), {
-    competitionId: worldCup2026Season.competitionId,
-    label: worldCup2026Season.label,
-    startsAt,
-    endsAt,
-    updatedAt: now,
-  });
   batch.set(groupRef, {
     name: input.name,
     slug,

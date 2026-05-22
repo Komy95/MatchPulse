@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { InviteCard } from "@/components/groups/invite-card";
+import { PredictionEntry } from "@/components/predictions/prediction-entry";
 import { getAuthenticatedUserContext } from "@/lib/auth/user-context";
 import { getGroupDetail, listGroupSeasons } from "@/lib/groups/service";
+import { listGroupSeasonMatchesWithPredictions } from "@/lib/predictions/service";
 
-const futureTabs = ["Matches", "Predictions", "Leaderboard", "Insights", "Settings"];
+const futureTabs = ["Leaderboard", "Insights", "Settings"];
 
 export default async function GroupDetailPage({
   params,
@@ -22,6 +24,11 @@ export default async function GroupDetailPage({
     getGroupDetail(groupId, user.uid),
     listGroupSeasons(groupId, user.uid),
   ]);
+  const matchResponse = await listGroupSeasonMatchesWithPredictions({
+    groupId,
+    groupSeasonId: group.activeGroupSeason.id,
+    userId: user.uid,
+  });
 
   return (
     <main className="min-h-screen bg-base px-5 py-6 pb-12 text-primaryText">
@@ -54,6 +61,13 @@ export default async function GroupDetailPage({
           groupId={group.id}
           groupSeasonId={group.activeGroupSeason.id}
           initialInvite={group.invite}
+        />
+
+        <PredictionEntry
+          allowBooster={matchResponse.allowBooster}
+          groupId={group.id}
+          groupSeasonId={group.activeGroupSeason.id}
+          matches={matchResponse.matches}
         />
 
         <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">

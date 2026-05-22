@@ -165,7 +165,7 @@ Rules:
 | Groups | Reusable group creation, group seasons, season-scoped invites, memberships, admin settings | `lib/groups/*` |
 | Predictions | Bulk upsert, lock enforcement, revision history | `lib/predictions/*` |
 | Scoring | Points, snapshots, ranking | `lib/scoring/*` |
-| Providers | Vendor abstraction and normalized data | `lib/providers/*` |
+| Sports data | Vendor abstraction and normalized reference data | `lib/sports-data/*` |
 | Team pages | Team metric snapshots and summaries | `lib/teams/*` |
 | AI insights | Feature payloads, prompt, schema, cache invalidation | `lib/insights/*` |
 | Simulator | Match probabilities, group logic, knockout logic | `lib/simulator/*` |
@@ -195,8 +195,8 @@ app/
     groups/[groupId]/route.ts
     groups/[groupId]/seasons/route.ts
     groups/[groupId]/seasons/[groupSeasonId]/invites/route.ts
+    groups/[groupId]/seasons/[groupSeasonId]/matches/route.ts
     groups/join/route.ts
-    groups/[groupId]/matches/route.ts
     groups/[groupId]/seasons/[groupSeasonId]/predictions/route.ts
     groups/[groupId]/seasons/[groupSeasonId]/leaderboard/route.ts
     leaderboard/global/route.ts

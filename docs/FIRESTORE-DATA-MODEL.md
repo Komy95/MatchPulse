@@ -25,8 +25,8 @@ This document is the canonical Firestore data model for the MVP.
 | `groups/{groupId}/seasons/{groupSeasonId}` | Tournament/season-specific group instance | Active members | Server routes only |
 | `groups/{groupId}/seasons/{groupSeasonId}/invites/{inviteId}` | Season-scoped invite tokens, expiry, revocation | Server-mediated | Owner/admin through server routes |
 | `inviteCodes/{code}` | Server-only invite code uniqueness and lookup registry | None | Server routes only |
-| `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` | Future user predictions for group-season matches | Members according to visibility settings | User-owned writes through server routes |
-| `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` | Future prediction audit history | Owner/admin or user-scoped views | Server routes only |
+| `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` | User predictions for group-season matches | Owning user while visibility rules are private | Server routes only |
+| `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` | Prediction audit history | Server-mediated only for MVP | Server routes only |
 | `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Future versioned group-season standings | Active members | Scoring jobs only |
 | `competitions/{competitionId}` | FIFA World Cup and future competition metadata | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}` | Provider-normalized competition season or tournament instance | Public | Server jobs/admin only |
@@ -163,6 +163,7 @@ Recommended ID pattern: `{matchId}_{userId}` for idempotent upserts.
 Fields:
 
 - `groupId`
+- `groupSeasonId`
 - `matchId`
 - `userId`
 - `homeGoals`
@@ -176,6 +177,8 @@ Fields:
 
 Keep `lockAt` copied from the match at save time for auditability, but validate against the canonical match document in server routes.
 
+Prediction documents are written only by `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions`. The server validates active membership, group-season scope, match existence, prediction mode, booster settings, score bounds, and `now < lockAt` using trusted server time and the canonical match document.
+
 ### `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}`
 
 Fields:
@@ -188,6 +191,8 @@ Fields:
 - `changedAt`
 - `changedBy`
 - `reason`
+
+Revisions are created only when a user changes an existing prediction. Repeating the same save is idempotent and does not create a revision.
 
 ### `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}`
 
@@ -368,8 +373,8 @@ Private documents:
 - group members
 - group seasons
 - season-scoped invites
-- group-season predictions
-- group-season prediction revisions
+- group-season predictions, limited to owning user until visibility rules are implemented
+- group-season prediction revisions, server-mediated only for MVP
 - group-season leaderboard snapshots
 - private/custom simulation runs
 

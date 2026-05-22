@@ -2,11 +2,11 @@
 
 MatchPulse is a mobile-first Progressive Web App for FIFA World Cup 2026 predictions. The MVP focuses on private groups, fast score predictions, leaderboards, explainable AI match insights, team pages, and a transparent tournament simulator.
 
-This repository is currently at Sprint 4: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, and a health endpoint.
+This repository is currently at Sprint 5: Next.js 15, TypeScript, Tailwind CSS, Firebase client/Admin SDK setup, Firebase Auth and Firestore emulator configuration, local sign-in, server-managed Firebase session cookies, protected dashboard routing, user profile bootstrap, reusable private groups, World Cup 2026 group seasons, season-scoped invites, conservative Firestore rules, provider-agnostic sports-data abstractions, prediction entry foundation, and a health endpoint.
 
 ## Current Scope
 
-Implemented through Sprint 4:
+Implemented through Sprint 5:
 
 - Next.js 15 App Router.
 - TypeScript strict mode.
@@ -33,6 +33,11 @@ Implemented through Sprint 4:
 - Mock/local sports-data provider for tests and emulator development.
 - Idempotent sports-data ingestion service and Firestore writer.
 - Competition-season-scoped Firestore sports-data model.
+- Idempotent local World Cup 2026 reference-data seed script.
+- Group-season match list endpoint.
+- Server-validated bulk prediction upsert endpoint.
+- Current-user prediction entry UI on the group detail page.
+- Prediction revision creation for changed predictions.
 - Environment variable parsing.
 - Basic mobile-first app shell.
 - Basic health endpoint at `/api/health`.
@@ -41,7 +46,6 @@ Implemented through Sprint 4:
 
 Not implemented yet:
 
-- Predictions.
 - Leaderboards.
 - AI insights.
 - Simulator.
@@ -226,6 +230,27 @@ competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
 
 The ingestion writer uses deterministic provider-scoped document IDs and merge upserts so the same provider batch can be run repeatedly without duplicate teams or matches. Provider credentials must remain server-only. Use `SPORTS_PROVIDER_API_KEY` from Secret Manager when a real provider adapter is implemented later.
 
+For local emulator development, seed the reference data after starting Firestore:
+
+```bash
+npm run seed:reference
+```
+
+The seed is idempotent and writes the canonical local World Cup 2026 competition, season, teams, and starter match under `competitions/{competitionId}/seasons/{seasonId}`. It refuses to run without `FIRESTORE_EMULATOR_HOST` unless `--allow-production` is passed intentionally.
+
+## Prediction Entry
+
+Sprint 5 supports current-user score predictions for matches in a group season before `lockAt`.
+
+Implemented routes:
+
+```text
+GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches
+POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions
+```
+
+Prediction writes are server-only. The server verifies active group membership, group-season scope, canonical match existence, prediction mode, booster setting, score bounds, and trusted server time before writing. Direct Firestore client writes to predictions and prediction revisions are denied.
+
 After the first successful login, verify in the Firestore emulator UI that a document exists at:
 
 ```text
@@ -283,6 +308,27 @@ Then validate:
 - Invalid invite returns `INVITE_INVALID`, `INVITE_EXPIRED`, or `INVITE_REVOKED` without group details.
 - Member can read the active member list on the group detail page.
 - Client direct writes to group, member, group season, invite, prediction, revision, or leaderboard documents are denied by Firestore rules.
+
+## Sprint 5 Validation Steps
+
+Run the app against Firebase Auth and Firestore emulators, then seed reference data:
+
+```bash
+npm run emulators
+npm run seed:reference
+npm run dev
+```
+
+Then validate:
+
+- Active group member can open a group detail page and see seeded World Cup matches.
+- Non-member cannot call `GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches`.
+- Active group member can save predictions before `lockAt`.
+- Repeating the same save is idempotent.
+- Changing a saved prediction creates a prediction revision.
+- Saving after `lockAt` returns `PREDICTION_LOCKED`.
+- Invalid match IDs return `MATCH_NOT_FOUND`.
+- Direct client writes to prediction and revision documents are denied by Firestore rules.
 
 ## Verification
 
@@ -377,8 +423,9 @@ lib/
   cache/
   firebase/
   profile/
+  predictions/
+  sports-data/
   insights/
-  providers/
   scoring/
   simulator/
 public/

@@ -111,11 +111,6 @@ service cloud.firestore {
       }
     }
 
-    match /seasons/{seasonId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
     match /inviteCodes/{code} {
       allow read, write: if false;
     }
@@ -138,7 +133,9 @@ service cloud.firestore {
         }
 
         match /predictions/{predictionId} {
-          allow read, write: if false;
+          allow read: if isActiveGroupMember(groupId)
+            && resource.data.userId == request.auth.uid;
+          allow write: if false;
         }
 
         match /predictionRevisions/{revisionId} {

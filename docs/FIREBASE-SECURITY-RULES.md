@@ -129,7 +129,7 @@ It also uses a server-only `inviteCodes/{code}` registry for code uniqueness and
 
 ### Predictions
 
-Users can write only their own predictions, and only through server-validated routes for MVP.
+Users can read only their own predictions while private visibility is the only implemented Sprint 5 behavior. Prediction writes go only through server-validated routes for MVP.
 
 Rules may enforce ownership checks:
 
@@ -145,7 +145,7 @@ However, Firestore Security Rules alone are insufficient for complete prediction
 - Match belongs to the group's competition.
 - Idempotent revision creation.
 
-Therefore, direct client writes to `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` should be denied for MVP unless the implementation can prove equivalent validation in both rules and server tests.
+Therefore, direct client writes to `groups/{groupId}/seasons/{groupSeasonId}/predictions/{predictionId}` are denied for MVP. The implemented server route is `POST /api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions`.
 
 ### Prediction Revisions
 
@@ -153,7 +153,7 @@ Prediction revisions are append-only audit records and must be server-only write
 
 Read access should be limited:
 
-- User can read revisions for their own predictions.
+- User revision reads remain server-mediated until an audit UI is explicitly implemented.
 - Owner/admin may read broader revision history for moderation or audit if product policy allows.
 - Do not expose revision history to non-members.
 

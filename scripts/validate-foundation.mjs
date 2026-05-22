@@ -29,6 +29,7 @@ const checks = [
       "match /inviteCodes/{code}",
       "match /seasons/{groupSeasonId}",
       "match /invites/{inviteId}",
+      "resource.data.userId == request.auth.uid",
       "allow read, write: if false;",
     ],
   },
@@ -87,6 +88,41 @@ const checks = [
       "Cloud Run Job",
       "Pub/Sub",
       "SPORTS_PROVIDER_API_KEY",
+    ],
+  },
+  {
+    file: "scripts/seed-world-cup-reference-data.mjs",
+    includes: [
+      "competitions",
+      "world-cup-2026",
+      "FIRESTORE_EMULATOR_HOST",
+      "merge: true",
+    ],
+  },
+  {
+    file: "lib/predictions/service.ts",
+    includes: [
+      "nowMs: now.toMillis()",
+      "lockAtMs",
+      "predictionRevisions",
+      "MATCH_OUTSIDE_GROUP_SEASON",
+      "evaluatePredictionUpsertPolicy",
+    ],
+  },
+  {
+    file: "lib/predictions/policy.ts",
+    includes: [
+      "PREDICTION_LOCKED",
+      "BOOSTER_NOT_ALLOWED",
+      "PREDICTION_INVALID",
+    ],
+  },
+  {
+    file: "docs/API-SPECS.md",
+    includes: [
+      "/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches",
+      "/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions",
+      "Other users' predictions are not exposed in Sprint 5.",
     ],
   },
 ];

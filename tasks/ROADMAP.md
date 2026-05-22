@@ -142,7 +142,39 @@ Still deferred:
 - Match-final scoring triggers.
 - Any prediction, leaderboard, dashboard personalization, AI insight, or simulator feature work.
 
-## Sprint 5: Preferences and Dashboard
+## Sprint 5: Prediction Entry Foundation
+
+Implemented:
+
+- Group-season match list endpoint at `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches`.
+- Current-user prediction inclusion on the match list.
+- Bulk prediction upsert endpoint at `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions`.
+- Active member authorization for match reads and prediction writes.
+- Canonical match validation under `competitions/{competitionId}/seasons/{seasonId}/matches`.
+- Trusted server-time lock enforcement using canonical `lockAt`.
+- Prediction documents under `groups/{groupId}/seasons/{groupSeasonId}/predictions/{matchId}_{userId}`.
+- Prediction revisions under `groups/{groupId}/seasons/{groupSeasonId}/predictionRevisions/{revisionId}` for changed predictions.
+- Mobile-first prediction cards on the group detail page.
+
+Still deferred:
+
+- Scoring.
+- Leaderboards.
+- Other users' prediction visibility after lock.
+- Prediction comparison views.
+- Dashboard personalization and next-action aggregation.
+- Favorite/followed team preference setup.
+
+## Sprint 6: Scoring and Leaderboards
+
+Future implementation should establish:
+
+- Hybrid 3-2-1 scoring.
+- Private group-season leaderboard snapshots.
+- Global leaderboard snapshots for opted-in users.
+- Cloud Run scoring jobs triggered by final match updates.
+
+## Sprint 6.5: Preferences and Dashboard
 
 Future implementation should establish:
 
@@ -152,19 +184,6 @@ Future implementation should establish:
 - Dashboard data aggregation.
 - Next action priority model.
 - Dashboard modules for picks, locks, standings, global rank, news, insights, and simulator.
-
-## Sprint 6: Predictions and Leaderboards
-
-Future implementation should establish:
-
-- Bulk prediction upsert through Cloud Run route handlers.
-- Prediction documents under `groups/{groupId}/seasons/{groupSeasonId}/predictions`.
-- UTC lock enforcement.
-- Prediction revision history.
-- Hybrid 3-2-1 scoring.
-- Private group-season leaderboard snapshots.
-- Global leaderboard snapshots for opted-in users.
-- Cloud Run scoring jobs triggered by final match updates.
 
 ## Sprint 7: Team Pages and AI Insights
 

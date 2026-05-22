@@ -27,7 +27,7 @@
 
 ## Core Endpoints
 
-Implemented through Sprint 3:
+Implemented through Sprint 5:
 
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
@@ -39,6 +39,8 @@ Implemented through Sprint 3:
 | `/api/v1/groups/{groupId}/seasons` | GET | Member | List seasons for a reusable group |
 | `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/invites` | POST | Owner/Admin | Create a season-scoped invite |
 | `/api/v1/groups/join` | POST | Authenticated | Join by invite code |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches` | GET | Member | Group-season scoped matches with current user's prediction |
+| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions` | POST | Member | Bulk prediction upsert |
 
 Sprint 4 data abstraction does not add public HTTP ingestion endpoints. Provider ingestion is a server-side module intended for Cloud Run Jobs or trusted admin triggers. Sports-data writes go through Firebase Admin SDK and target:
 
@@ -55,8 +57,6 @@ Future endpoints must keep group-season scoping:
 
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
-| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches` | GET | Member | Group-season scoped matches |
-| `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/predictions` | POST | Member | Bulk prediction upsert |
 | `/api/v1/groups/{groupId}/seasons/{groupSeasonId}/leaderboard` | GET | Member | Group-season leaderboard |
 | `/api/v1/leaderboard/global` | GET | Public/Auth optional | Future global leaderboard read model |
 | `/api/v1/matches/{matchId}` | GET | Public or member | Future match detail |
@@ -188,6 +188,20 @@ Rules:
 - Invite code is reserved in `inviteCodes/{code}` to avoid collisions.
 - Normal members cannot create invites.
 
+## Group Season Matches
+
+```http
+GET /api/v1/groups/{groupId}/seasons/{groupSeasonId}/matches
+```
+
+Rules:
+
+- User must be an active group member.
+- Group season must belong to the group.
+- Matches are loaded from the canonical public path `competitions/{competitionId}/seasons/{seasonId}/matches`.
+- Response includes only the current user's prediction, if present.
+- Other users' predictions are not exposed in Sprint 5.
+
 ## Bulk Upsert Predictions
 
 ```http
@@ -203,7 +217,6 @@ Request:
       "matchId": "mat_01",
       "homeGoals": 2,
       "awayGoals": 1,
-      "confidence": "high",
       "booster": true
     }
   ]
@@ -215,16 +228,19 @@ Response:
 ```json
 {
   "saved": 1,
-  "locked": 0,
-  "ignored": []
+  "unchanged": 0,
+  "revisionsCreated": 0
 }
 ```
 
 Rules:
 
 - User must be an active group member.
-- Match must belong to the group season competition/season.
+- Match must exist under the group season's canonical competition and season.
 - Reject predictions where `now >= lockAt`.
+- Server uses trusted server time and does not accept client-supplied `lockAt` or `userId`.
+- Scores must be integers from 0 to 20.
+- Booster can be used only when the group season allows it.
 - Store revision history.
 - Save operation must be idempotent.
 - Use Firestore transactions or batched writes where needed to keep predictions and revisions consistent.
