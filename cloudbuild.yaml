@@ -4,6 +4,7 @@ substitutions:
   _REPOSITORY: matchpulse
   _IMAGE: matchpulse-web
   _ENV_FILE: deploy/staging.env.yaml
+  _TAG: latest
 
 steps:
   - name: gcr.io/cloud-builders/docker
@@ -13,7 +14,7 @@ steps:
       - -ceu
       - |
         ENV_FILE="${_ENV_FILE}"
-        IMAGE_URI="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}"
+        IMAGE_URI="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}"
 
         if [ ! -f "$${ENV_FILE}" ]; then
           echo "Missing $${ENV_FILE}. Copy deploy/staging.env.yaml.example and fill staging values before running Cloud Build." >&2
@@ -56,7 +57,7 @@ steps:
     id: Push
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     id: Deploy
@@ -65,11 +66,11 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
       - --region=${_REGION}
       - --platform=managed
       - --allow-unauthenticated
       - --env-vars-file=${_ENV_FILE}
 
 images:
-  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
