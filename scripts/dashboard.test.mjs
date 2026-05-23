@@ -49,6 +49,27 @@ test("dashboard prioritizes soon-locking missing predictions", () => {
   assert.equal(dashboard.continuePredicting[0].id, "match-1");
 });
 
+test("dashboard labels the first open missing pick as the first prediction", () => {
+  const dashboard = buildDashboardViewModel({
+    userId: "user-1",
+    groups: [
+      group({
+        matches: [
+          match("match-1", {
+            lockAt: "2026-06-12T20:00:00.000Z",
+            predictionState: "MISSING",
+          }),
+        ],
+      }),
+    ],
+    nowMs,
+  });
+
+  assert.equal(dashboard.nextAction.kind, "MAKE_PICKS");
+  assert.equal(dashboard.nextAction.title, "Make your first prediction");
+  assert.equal(dashboard.nextAction.ctaLabel, "Make your first prediction");
+});
+
 test("dashboard shows next matches when open predictions are complete", () => {
   const dashboard = buildDashboardViewModel({
     userId: "user-1",

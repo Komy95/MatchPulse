@@ -44,11 +44,17 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
           <FieldLabel>Invite code</FieldLabel>
           <Input
             className="py-4 font-mono text-xl tracking-[0.12em] uppercase"
+            placeholder="ABC123"
             required
             value={code}
             onChange={(event) => setCode(event.target.value.toUpperCase())}
           />
         </label>
+
+        <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky p-4 text-sm leading-6 text-primaryText">
+          A valid invite takes you straight into the pool so you can make picks for open World Cup
+          matches.
+        </div>
 
         {error ? (
           <div className="mt-4 rounded-md border border-canadaRed/20 bg-softRed px-4 py-3 text-sm">
@@ -57,7 +63,7 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
         ) : null}
 
         <Button className="mt-5 w-full" disabled={submitting} type="submit">
-          {submitting ? "Joining..." : "Join group"}
+          {submitting ? "Joining..." : "Join Group"}
         </Button>
       </form>
     </Card>

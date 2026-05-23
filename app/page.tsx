@@ -2,20 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge, ButtonLink, Card, FixtureCard } from "@/components/ui/primitives";
 
-const featurePills = ["Private Groups", "Live Leaderboards", "Match Predictions", "World Cup 2026"];
+const featurePills = ["Private pools", "Points only", "No real-money betting", "World Cup 2026"];
 
 const features = [
   {
-    title: "Predict before kickoff",
-    body: "Fast score entry for every fixture window, with lock timing kept clear on mobile.",
+    title: "Create a private pool",
+    body: "Start a World Cup prediction group for friends, family or work without public rankings or betting mechanics.",
   },
   {
-    title: "Private group pressure",
-    body: "Invite-only standings turn each matchday into a small competition with people you know.",
+    title: "Invite friends fast",
+    body: "Share an invite code, bring everyone into the same season and keep the group reusable after the tournament.",
   },
   {
-    title: "World Cup first",
-    body: "Built around the 2026 tournament rhythm, then ready for reusable seasons later.",
+    title: "Make picks, climb the table",
+    body: "Enter scores before kickoff, earn points and follow your private leaderboard through each matchday.",
   },
 ];
 
@@ -63,19 +63,19 @@ export default function HomePage() {
             <div className="max-w-3xl">
               <p className="text-sm font-semibold text-white/78">World Cup 2026 Predictions</p>
               <h1 className="mt-4 text-5xl font-semibold leading-[0.98] tracking-normal text-white sm:text-7xl lg:text-8xl">
-                Make every fixture count.
+                Your private World Cup prediction pool.
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-white/82 sm:text-xl sm:leading-9">
-                Create a private matchday table, lock in score predictions and track the World Cup
-                with a calm, mobile-first dashboard.
+                Create a private World Cup prediction pool, invite friends, make picks, and climb
+                your leaderboard.
               </p>
 
               <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
-                <ButtonLink className="min-h-14 px-6 py-4 text-base" href="/register">
-                  Create account
+                <ButtonLink className="min-h-14 px-6 py-4 text-base" href="/groups/new">
+                  Create Group
                 </ButtonLink>
-                <ButtonLink className="min-h-14 px-6 py-4 text-base" href="/login" variant="dark">
-                  Sign in
+                <ButtonLink className="min-h-14 px-6 py-4 text-base" href="/join" variant="dark">
+                  Join Group
                 </ButtonLink>
               </div>
 
@@ -98,7 +98,7 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <p className="text-sm font-semibold text-pitchGreen">Built for matchday</p>
             <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-              A private World Cup table that feels alive without feeling loud.
+              Built for friendly World Cup competition, not betting.
             </h2>
           </div>
 
@@ -131,11 +131,16 @@ export default function HomePage() {
             Ready for World Cup 2026?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-white/76">
-            Start a private group and make each fixture a reason to check back.
+            Create a private pool, invite friends and make your first prediction before kickoff.
           </p>
-          <ButtonLink className="mt-8 min-h-14 px-7 py-4 text-base" href="/register">
-            Create account
-          </ButtonLink>
+          <div className="mt-8 grid gap-3 sm:flex sm:justify-center">
+            <ButtonLink className="min-h-14 px-7 py-4 text-base" href="/groups/new">
+              Create Group
+            </ButtonLink>
+            <ButtonLink className="min-h-14 px-7 py-4 text-base" href="/join" variant="dark">
+              Join Group
+            </ButtonLink>
+          </div>
         </div>
       </section>
     </main>
@@ -147,14 +152,14 @@ function LandingPreview() {
     <div className="hidden lg:block">
       <div className="rounded-lg border border-white/22 bg-white/12 p-5 shadow-elevated backdrop-blur-xl">
         <FixtureCard className="border-white/16 bg-white/[0.92] text-primaryText shadow-elevated">
-          <p className="text-sm font-semibold text-pitchGreen">Tonight&apos;s pick</p>
+            <p className="text-sm font-semibold text-pitchGreen">First prediction</p>
           <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <TeamScore name="Canada" score="2" />
             <span className="text-sm font-semibold text-secondaryText">vs</span>
             <TeamScore name="Japan" score="1" />
           </div>
           <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky px-4 py-3 text-sm font-semibold text-primaryText">
-            Locks in 2h 14m
+            Make your pick before kickoff
           </div>
         </FixtureCard>
 

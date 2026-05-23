@@ -13,20 +13,26 @@ export function DashboardGroups({ initialGroups }: { initialGroups: GroupDashboa
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-pitchGreen">Private groups</p>
-          <h2 className="mt-2 text-2xl font-semibold leading-tight">Reusable groups</h2>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight">Your prediction pools</h2>
         </div>
         <ButtonLink className="shrink-0 px-4" href="/groups/new">
-          Create group
+          Create Group
         </ButtonLink>
       </div>
 
       {groups.length === 0 ? (
         <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5">
-          <h3 className="text-lg font-semibold">Create your first World Cup group</h3>
+          <h3 className="text-lg font-semibold">No groups yet</h3>
           <p className="mt-2 text-sm leading-6 text-secondaryText">
-            Start with FIFA World Cup 2026, then reuse the same group for future tournaments and
-            seasons.
+            Create a private World Cup prediction pool or join one with an invite code. Pools are
+            points-only and never real-money betting.
           </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ButtonLink href="/groups/new">Create Group</ButtonLink>
+            <ButtonLink href="/join" variant="secondary">
+              Join Group
+            </ButtonLink>
+          </div>
         </div>
       ) : (
         <div className="mt-5 space-y-3">
@@ -57,7 +63,7 @@ export function DashboardGroups({ initialGroups }: { initialGroups: GroupDashboa
         href="/join"
         variant="secondary"
       >
-        Join with invite code
+        Join Group
       </ButtonLink>
     </Card>
   );

@@ -23,6 +23,9 @@ export function buildDashboardViewModel({
     .filter((match) => match.predictionState === "MISSING")
     .sort(compareByLock);
   const savedOpenMatches = openMatches.filter((match) => match.predictionState === "SAVED");
+  const savedPredictionCount = allMatches.filter(
+    (match) => match.predictionState === "SAVED" || match.predictionState === "LOCKED_SAVED",
+  ).length;
   const soonLockingMissing = missingOpenMatches.filter(
     (match) => Date.parse(match.lockAt) - nowMs <= soonLockWindowMs,
   );
@@ -55,6 +58,7 @@ export function buildDashboardViewModel({
     nextAction: chooseNextAction({
       hasGroups: groups.length > 0,
       missingOpenMatches,
+      savedPredictionCount,
       soonLockingMissingCount: soonLockingMissing.length,
       nextLocks,
       leaderboardSummaries,
@@ -76,12 +80,14 @@ export function buildDashboardViewModel({
 function chooseNextAction({
   hasGroups,
   missingOpenMatches,
+  savedPredictionCount,
   soonLockingMissingCount,
   nextLocks,
   leaderboardSummaries,
 }: {
   hasGroups: boolean;
   missingOpenMatches: DashboardMatchSummary[];
+  savedPredictionCount: number;
   soonLockingMissingCount: number;
   nextLocks: DashboardMatchSummary[];
   leaderboardSummaries: Array<{ href: string }>;
@@ -98,17 +104,20 @@ function chooseNextAction({
 
   if (missingOpenMatches.length > 0) {
     const target = missingOpenMatches[0];
+    const isFirstPrediction = savedPredictionCount === 0;
 
     return {
       kind: "MAKE_PICKS",
       title:
-        soonLockingMissingCount > 0
+        isFirstPrediction
+          ? "Make your first prediction"
+          : soonLockingMissingCount > 0
           ? `${soonLockingMissingCount} pick${soonLockingMissingCount === 1 ? "" : "s"} ${
               soonLockingMissingCount === 1 ? "locks" : "lock"
             } soon`
           : "Finish your open predictions",
-      body: `${target.homeTeam} vs ${target.awayTeam} is the next missing pick.`,
-      ctaLabel: "Make picks",
+      body: `${target.homeTeam} vs ${target.awayTeam} is ready for your score pick.`,
+      ctaLabel: isFirstPrediction ? "Make your first prediction" : "Make picks",
       href: target.href,
     };
   }

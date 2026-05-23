@@ -38,7 +38,7 @@ function NextActionCard({ dashboard }: { dashboard: DashboardViewModel }) {
           href="/join"
           variant="dark"
         >
-          Join with invite code
+          Join Group
         </ButtonLink>
       ) : null}
     </Card>
@@ -52,9 +52,11 @@ function PredictionProgressCard({ dashboard }: { dashboard: DashboardViewModel }
     <Card tone="pitch">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-pitchGreen">Continue predicting</p>
+          <p className="text-sm font-semibold text-pitchGreen">Predictions</p>
           <h2 className="mt-2 text-2xl font-semibold leading-tight">
-            {progress.missingOpen} open pick{progress.missingOpen === 1 ? "" : "s"} missing
+            {progress.totalOpen === 0
+              ? "No open prediction windows"
+              : `${progress.missingOpen} open pick${progress.missingOpen === 1 ? "" : "s"} missing`}
           </h2>
         </div>
         <Badge tone="blue">
@@ -70,11 +72,27 @@ function PredictionProgressCard({ dashboard }: { dashboard: DashboardViewModel }
 
       {dashboard.continuePredicting.length === 0 ? (
         <EmptyPanel
-          body="Your next match windows will stay visible here."
-          title="No editable picks are missing."
+          body={
+            progress.totalOpen === 0
+              ? "When upcoming matches open for picks, they will appear here with a clear save action."
+              : "You have no missing open picks right now. Saved predictions stay ready for the next lock."
+          }
+          title={progress.totalOpen === 0 ? "No predictions available yet." : "No editable picks are missing."}
         />
       ) : (
         <div className="mt-5 space-y-3">
+          {progress.savedOpen === 0 ? (
+            <div className="rounded-md border border-worldCupBlue/15 bg-softSky p-4">
+              <h3 className="text-lg font-semibold">Make your first prediction</h3>
+              <p className="mt-2 text-sm leading-6 text-secondaryText">
+                Pick a score for any open fixture, save it, and your group leaderboard will update
+                after results are scored.
+              </p>
+              <ButtonLink className="mt-4 w-full" href={dashboard.continuePredicting[0].href}>
+                Make your first prediction
+              </ButtonLink>
+            </div>
+          ) : null}
           {dashboard.continuePredicting.map((match) => (
             <MatchRow key={`${match.groupId}-${match.id}`} match={match} />
           ))}
@@ -90,9 +108,10 @@ function NextLocksCard({ matches }: { matches: DashboardMatchSummary[] }) {
       <p className="text-sm font-semibold text-pitchGreen">Next locks</p>
       <h2 className="mt-2 text-2xl font-semibold leading-tight">Upcoming match windows</h2>
       {matches.length === 0 ? (
-        <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5 text-sm text-secondaryText">
-          No upcoming match locks are available yet.
-        </div>
+        <EmptyPanel
+          body="Once the season has upcoming fixtures with lock times, your next match windows will appear here."
+          title="No upcoming matches yet."
+        />
       ) : (
         <div className="mt-5 space-y-3">
           {matches.map((match) => (

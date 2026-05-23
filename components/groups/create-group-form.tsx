@@ -53,8 +53,17 @@ export function CreateGroupForm() {
         </label>
 
         <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky p-4 text-sm leading-6 text-primaryText">
-          Scoring starts with Hybrid 3-2-1 exact score rules for FIFA World Cup 2026. Group settings
-          and future seasons stay server-managed.
+          After creation, share the invite from your group page. Everyone predicts World Cup scores,
+          earns points, and climbs the same private leaderboard.
+        </div>
+
+        <div className="mt-3 grid gap-2 text-sm text-secondaryText">
+          <p className="rounded-md border border-borderSoft bg-cardWarm px-4 py-3">
+            Private prediction pool for invited members only.
+          </p>
+          <p className="rounded-md border border-borderSoft bg-cardWarm px-4 py-3">
+            Points-only scoring. No wagers, stakes, or real-money betting.
+          </p>
         </div>
 
         {error ? (
@@ -64,7 +73,7 @@ export function CreateGroupForm() {
         ) : null}
 
         <Button className="mt-5 w-full" disabled={submitting} type="submit">
-          {submitting ? "Creating..." : "Create group"}
+          {submitting ? "Creating..." : "Create Group"}
         </Button>
       </form>
     </Card>

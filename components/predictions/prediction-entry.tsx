@@ -50,6 +50,8 @@ export function PredictionEntry({
       }).length,
     [drafts, matches],
   );
+  const openMatches = matches.filter((match) => !match.locked);
+  const savedCount = matches.filter((match) => match.prediction !== null).length;
 
   async function savePredictions() {
     setSaving(true);
@@ -127,13 +129,22 @@ export function PredictionEntry({
 
       {matches.length === 0 ? (
         <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5">
-          <h3 className="text-lg font-semibold">No matches seeded yet</h3>
+          <h3 className="text-lg font-semibold">No predictions available yet</h3>
           <p className="mt-2 text-sm leading-6 text-secondaryText">
-            Seed local World Cup reference data to start entering predictions.
+            Upcoming World Cup matches will appear here when they are ready for picks.
           </p>
         </div>
       ) : (
         <div className="mt-5 space-y-4">
+          {openMatches.length > 0 && savedCount === 0 ? (
+            <div className="rounded-md border border-worldCupBlue/15 bg-softSky p-4">
+              <h3 className="text-lg font-semibold">Make your first prediction</h3>
+              <p className="mt-2 text-sm leading-6 text-secondaryText">
+                Enter a score for any open match below, then save. Your points will count after the
+                match result is scored.
+              </p>
+            </div>
+          ) : null}
           {matches.map((match) => {
             const draft = drafts[match.id];
 
@@ -195,11 +206,11 @@ export function PredictionEntry({
 
       <Button
         className="mt-5 w-full"
-        disabled={saving || matches.length === 0}
+        disabled={saving || openMatches.length === 0}
         type="button"
         onClick={savePredictions}
       >
-        {saving ? "Saving..." : "Save predictions"}
+        {saving ? "Saving..." : openMatches.length === 0 ? "No open predictions" : savedCount === 0 ? "Save first prediction" : "Save predictions"}
       </Button>
 
       {message ? (
