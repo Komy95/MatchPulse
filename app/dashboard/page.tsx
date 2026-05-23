@@ -19,8 +19,8 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-base px-5 py-6 text-primaryText">
-      <section className="mx-auto w-full max-w-md space-y-5">
+    <main className="min-h-screen bg-base px-4 py-5 text-primaryText sm:px-6 sm:py-8">
+      <section className="mx-auto w-full max-w-md space-y-5 pb-10">
         <DashboardCommandCenter dashboard={dashboard} />
         <DashboardGroups initialGroups={groups} />
         <DashboardProfile uid={user.uid} />

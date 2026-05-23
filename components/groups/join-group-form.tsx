@@ -42,9 +42,9 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
       onSubmit={handleSubmit}
     >
       <label className="block space-y-2">
-        <span className="text-sm font-medium">Invite code</span>
+        <span className="text-sm font-semibold">Invite code</span>
         <input
-          className="w-full rounded-md border-borderSoft bg-base px-4 py-4 font-mono text-xl tracking-[0.12em] uppercase"
+          className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-4 font-mono text-xl tracking-[0.12em] uppercase focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
           required
           value={code}
           onChange={(event) => setCode(event.target.value.toUpperCase())}
@@ -58,7 +58,7 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
       ) : null}
 
       <button
-        className="mt-5 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={submitting}
         type="submit"
       >

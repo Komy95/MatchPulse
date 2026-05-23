@@ -16,7 +16,7 @@ Implemented through Sprint 6.3:
 - Firebase Auth emulator configuration.
 - Firestore emulator configuration.
 - Google sign-in client flow as the MVP default.
-- Email/password sign-in as a local/test fallback when the provider is enabled in Firebase.
+- Email/password sign-in and registration when the provider is enabled in Firebase.
 - Server-managed Firebase session cookie creation at `/api/auth/session`.
 - Server-managed session logout at `/api/auth/logout`.
 - Logout.
@@ -110,6 +110,12 @@ Sign in:
 http://localhost:3000/login
 ```
 
+Create account:
+
+```text
+http://localhost:3000/register
+```
+
 Protected dashboard:
 
 ```text
@@ -152,9 +158,9 @@ Start the emulators before signing in:
 npm run emulators
 ```
 
-Google login is the MVP default. Email/password is available only as a local/test fallback unless full registration is explicitly implemented later.
+Google login is the MVP default. Email/password registration and sign-in are also supported when the Email/Password provider is enabled for the active Firebase project.
 
-For Google sign-in, use the emulator popup flow from `/login`. For email/password sign-in, enable the Email/Password provider in the Auth emulator UI and create a local test user there first. Then sign in from `/login` with that local user.
+For Google sign-in, use the emulator popup flow from `/login` or `/register`. For email/password testing in local emulators, enable the Email/Password provider in the Auth emulator UI, then create an account from `/register`. Existing email/password users can sign in from `/login`.
 
 The browser signs in with Firebase Auth first, then sends the Firebase ID token to:
 
@@ -162,7 +168,7 @@ The browser signs in with Firebase Auth first, then sends the Firebase ID token 
 POST /api/auth/session
 ```
 
-The route verifies the ID token with the Firebase Admin SDK, creates a Firebase session cookie, and sets `__session` as `HttpOnly`, `SameSite=Lax`, `path=/`, and `Secure` in production. Browser code does not write the session cookie directly.
+The route verifies the ID token with the Firebase Admin SDK, creates or refreshes the user profile document, creates a Firebase session cookie, and sets `__session` as `HttpOnly`, `SameSite=Lax`, `path=/`, and `Secure` in production. Browser code does not write the session cookie directly.
 
 Logout calls:
 

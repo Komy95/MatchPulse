@@ -107,13 +107,13 @@ export function PredictionEntry({
   }
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-worldCupBlue">Predictions</p>
-          <h2 className="mt-2 text-2xl font-semibold">Match picks</h2>
+          <p className="text-sm font-semibold text-worldCupBlue">Predictions</p>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight">Match picks</h2>
         </div>
-        <span className="rounded-full bg-softSky px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-softSky px-3 py-1 text-sm font-semibold">
           {saveableCount} ready
         </span>
       </div>
@@ -140,7 +140,7 @@ export function PredictionEntry({
                     <p className="text-xs font-medium text-secondaryText">
                       {formatKickoff(match.kickoffAt)}
                     </p>
-                    <h3 className="mt-2 text-lg font-semibold">
+                    <h3 className="mt-2 text-lg font-semibold leading-snug">
                       {match.homeTeam.shortName} vs {match.awayTeam.shortName}
                     </h3>
                     <p className="mt-1 text-sm text-secondaryText">
@@ -149,7 +149,7 @@ export function PredictionEntry({
                     </p>
                   </div>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
                       match.locked ? "bg-softRed" : "bg-softGreen"
                     }`}
                   >
@@ -194,7 +194,7 @@ export function PredictionEntry({
       )}
 
       <button
-        className="mt-5 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={saving || matches.length === 0}
         type="button"
         onClick={savePredictions}
@@ -203,7 +203,7 @@ export function PredictionEntry({
       </button>
 
       {message ? (
-        <div className="mt-4 rounded-md border border-borderSoft bg-softSky px-4 py-3 text-sm">
+        <div className="mt-4 rounded-md border border-borderSoft bg-softSky px-4 py-3 text-sm leading-6">
           {message}
         </div>
       ) : null}
@@ -224,7 +224,7 @@ function ScoreInput({
 }) {
   return (
     <label className="block">
-      <span className="block min-h-10 text-sm font-medium leading-5">{label}</span>
+      <span className="block min-h-10 text-sm font-semibold leading-5">{label}</span>
       <input
         className="mt-2 h-14 w-full rounded-md border border-borderSoft bg-card px-3 text-center text-2xl font-semibold tabular-nums outline-none transition focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue disabled:bg-[#F4F4EF] disabled:text-secondaryText"
         disabled={disabled}

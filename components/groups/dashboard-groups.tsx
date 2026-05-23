@@ -8,14 +8,14 @@ export function DashboardGroups({ initialGroups }: { initialGroups: GroupDashboa
   const [groups] = useState(initialGroups);
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-worldCupBlue">Private groups</p>
-          <h2 className="mt-2 text-2xl font-semibold">Reusable groups</h2>
+          <p className="text-sm font-semibold text-worldCupBlue">Private groups</p>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight">Reusable groups</h2>
         </div>
         <Link
-          className="shrink-0 rounded-sm bg-worldCupBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+          className="shrink-0 rounded-md bg-worldCupBlue px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.14)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
           href="/groups/new"
         >
           Create group
@@ -40,12 +40,12 @@ export function DashboardGroups({ initialGroups }: { initialGroups: GroupDashboa
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-semibold">{group.name}</h3>
+                  <h3 className="text-lg font-semibold leading-snug">{group.name}</h3>
                   <p className="mt-1 text-sm text-secondaryText">
                     {group.activeGroupSeason?.label ?? "No active season"}
                   </p>
                 </div>
-                <span className="rounded-full bg-softGreen px-3 py-1 text-xs font-medium text-primaryText">
+                <span className="rounded-full bg-softGreen px-3 py-1 text-sm font-semibold text-primaryText">
                   {group.memberCount} member{group.memberCount === 1 ? "" : "s"}
                 </span>
               </div>
@@ -55,7 +55,7 @@ export function DashboardGroups({ initialGroups }: { initialGroups: GroupDashboa
       )}
 
       <Link
-        className="mt-4 block rounded-md border border-borderSoft px-5 py-4 text-center text-sm font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+        className="mt-4 block min-h-14 rounded-md border border-borderSoft px-5 py-4 text-center text-base font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
         href="/join"
       >
         Join with invite code

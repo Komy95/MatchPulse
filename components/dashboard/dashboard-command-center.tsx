@@ -18,19 +18,19 @@ export function DashboardCommandCenter({ dashboard }: { dashboard: DashboardView
 
 function NextActionCard({ dashboard }: { dashboard: DashboardViewModel }) {
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
-      <p className="text-sm font-medium text-worldCupBlue">Next action</p>
-      <h1 className="mt-3 text-3xl font-semibold">{dashboard.nextAction.title}</h1>
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
+      <p className="text-sm font-semibold text-worldCupBlue">Next action</p>
+      <h1 className="mt-3 text-3xl font-semibold leading-tight">{dashboard.nextAction.title}</h1>
       <p className="mt-3 text-base leading-7 text-secondaryText">{dashboard.nextAction.body}</p>
       <Link
-        className="mt-5 block rounded-md bg-worldCupBlue px-5 py-4 text-center text-base font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+        className="mt-5 block min-h-14 rounded-md bg-worldCupBlue px-5 py-4 text-center text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
         href={dashboard.nextAction.href}
       >
         {dashboard.nextAction.ctaLabel}
       </Link>
       {dashboard.groups.length === 0 ? (
         <Link
-          className="mt-3 block rounded-md border border-borderSoft px-5 py-4 text-center text-sm font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+          className="mt-3 block min-h-14 rounded-md border border-borderSoft px-5 py-4 text-center text-base font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
           href="/join"
         >
           Join with invite code
@@ -44,15 +44,15 @@ function PredictionProgressCard({ dashboard }: { dashboard: DashboardViewModel }
   const progress = dashboard.predictionProgress;
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-worldCupBlue">Continue predicting</p>
-          <h2 className="mt-2 text-2xl font-semibold">
+          <p className="text-sm font-semibold text-worldCupBlue">Continue predicting</p>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight">
             {progress.missingOpen} open pick{progress.missingOpen === 1 ? "" : "s"} missing
           </h2>
         </div>
-        <span className="rounded-full bg-softSky px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-softSky px-3 py-1 text-sm font-semibold">
           {progress.savedOpen}/{progress.totalOpen} saved
         </span>
       </div>
@@ -83,9 +83,9 @@ function PredictionProgressCard({ dashboard }: { dashboard: DashboardViewModel }
 
 function NextLocksCard({ matches }: { matches: DashboardMatchSummary[] }) {
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
-      <p className="text-sm font-medium text-worldCupBlue">Next locks</p>
-      <h2 className="mt-2 text-2xl font-semibold">Upcoming match windows</h2>
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
+      <p className="text-sm font-semibold text-worldCupBlue">Next locks</p>
+      <h2 className="mt-2 text-2xl font-semibold leading-tight">Upcoming match windows</h2>
       {matches.length === 0 ? (
         <div className="mt-5 rounded-lg border border-borderSoft bg-base p-5 text-sm text-secondaryText">
           No upcoming match locks are available yet.
@@ -103,9 +103,9 @@ function NextLocksCard({ matches }: { matches: DashboardMatchSummary[] }) {
 
 function PrivateStandingsCard({ summaries }: { summaries: DashboardLeaderboardSummary[] }) {
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
-      <p className="text-sm font-medium text-worldCupBlue">Private standings</p>
-      <h2 className="mt-2 text-2xl font-semibold">Leaderboard summary</h2>
+    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
+      <p className="text-sm font-semibold text-worldCupBlue">Private standings</p>
+      <h2 className="mt-2 text-2xl font-semibold leading-tight">Leaderboard summary</h2>
       {summaries.length === 0 ? (
         <div className="mt-5 rounded-lg border border-borderSoft bg-base p-5">
           <h3 className="text-lg font-semibold">Standings appear after scoring.</h3>
@@ -156,13 +156,13 @@ function MatchRow({ match }: { match: DashboardMatchSummary }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold leading-snug">
             {match.homeTeam} vs {match.awayTeam}
           </h3>
           <p className="mt-1 text-sm text-secondaryText">{match.groupName}</p>
           <p className="mt-2 text-xs text-secondaryText">Locks {formatDate(match.lockAt)}</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeClass(match)}`}>
+        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(match)}`}>
           {predictionLabel(match)}
         </span>
       </div>
