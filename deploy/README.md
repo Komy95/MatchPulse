@@ -60,12 +60,21 @@ gcloud projects add-iam-policy-binding matchpulse-staging-da54c \
   --role="roles/iam.serviceAccountUser"
 ```
 
-## 5. Deploy Firestore Rules
+## 5. Deploy Firestore Rules and Indexes
 
-`firebase.json` already points to `firestore.rules`.
+`firebase.json` points to both Firestore deployment files:
+
+- `firestore.rules`
+- `firestore.indexes.json`
 
 ```bash
 npx firebase deploy --only firestore:rules --project matchpulse-staging-da54c
+```
+
+Deploy Firestore indexes whenever `firestore.indexes.json` changes:
+
+```bash
+firebase deploy --only firestore:indexes --project matchpulse-staging-da54c
 ```
 
 ## 6. Create Staging Env File
