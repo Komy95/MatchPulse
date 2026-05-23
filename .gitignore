@@ -1,5 +1,6 @@
 .env
 .env*.local
+deploy/staging.env.yaml
 .firebase/
 .codegraph/
 .next/
