@@ -10,8 +10,12 @@ The interface returns normalized domain objects only:
 
 - `NormalizedCompetition`
 - `NormalizedSeason`
+- `TournamentGroup`
 - `NormalizedTeam`
 - `NormalizedMatch`
+- `Squad`
+- `Player`
+- `BracketNode`
 - provider metadata
 - freshness metadata
 
@@ -28,8 +32,12 @@ Sports data is public read, server write:
 ```text
 competitions/{competitionId}
 competitions/{competitionId}/seasons/{seasonId}
+competitions/{competitionId}/seasons/{seasonId}/tournamentGroups/{tournamentGroupId}
 competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}
+competitions/{competitionId}/seasons/{seasonId}/players/{playerId}
+competitions/{competitionId}/seasons/{seasonId}/squads/{squadId}
 competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
+competitions/{competitionId}/seasons/{seasonId}/bracketNodes/{bracketNodeId}
 ```
 
 The competition-season path is canonical. Future prediction and scoring code should resolve a group season's `competitionId` and `seasonId`, then read matches from:
@@ -38,7 +46,7 @@ The competition-season path is canonical. Future prediction and scoring code sho
 competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}
 ```
 
-Do not create provider-ingested matches directly under `groups/{groupId}` or under a group season. Group seasons reference public sports data; private predictions and leaderboards live under the group season.
+Do not create provider-ingested matches, teams, scores, squads, players, tournament groups, or bracket nodes directly under `groups/{groupId}` or under a group season. Group seasons reference public sports data by `competitionId`, `seasonId`, and `matchId`; private predictions and leaderboards live under the group season.
 
 ## Idempotency
 
@@ -46,7 +54,7 @@ The ingestion service:
 
 1. Accepts a provider and `{ competitionId, seasonId }` request.
 2. Fetches normalized data.
-3. Validates that every returned competition, season, team, and match belongs to the requested scope.
+3. Validates that every returned competition, season, tournament group, team, player, squad, match, and bracket node belongs to the requested scope and references known central IDs.
 4. Writes through `SportsDataWriter`.
 5. Uses deterministic provider-scoped document IDs for teams and matches.
 6. Uses Firestore merge upserts.
@@ -73,6 +81,10 @@ Season documents also store:
 - `lastIngestedAt`
 - `teamCount`
 - `matchCount`
+- `tournamentGroupCount`
+- `squadCount`
+- `playerCount`
+- `bracketNodeCount`
 - `finalMatchCount`
 
 Cloud Run Jobs should log provider ID, competition ID, season ID, fetched timestamp, upsert counts, final match count, and any provider validation errors.

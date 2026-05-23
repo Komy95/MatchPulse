@@ -1,4 +1,7 @@
-import { deterministicProviderEntityId } from "@/lib/sports-data/ids";
+import {
+  deterministicProviderEntityId,
+  tournamentGroupDocumentId,
+} from "@/lib/sports-data/ids";
 import type {
   MatchStatus,
   NormalizedMatch,
@@ -6,6 +9,7 @@ import type {
   NormalizedTeam,
   ProviderMetadata,
   SportsDataIngestionRequest,
+  TournamentGroup,
 } from "@/lib/sports-data/domain";
 import { ProviderDataError, type SportsDataProvider } from "@/lib/sports-data/providers/types";
 
@@ -183,6 +187,7 @@ export function mapMockProviderPayload(
   const matches = payload.matches.map((match) =>
     mapMockMatch(match, request, teamByExternalId, fetchedAt, freshness),
   );
+  const tournamentGroups = buildTournamentGroups(request, teams, fetchedAt, freshness);
 
   return {
     competition: {
@@ -203,11 +208,44 @@ export function mapMockProviderPayload(
       freshness,
       updatedAt: fetchedAt,
     },
+    tournamentGroups,
     teams,
     matches,
     fetchedAt,
     freshness,
   };
+}
+
+function buildTournamentGroups(
+  request: SportsDataIngestionRequest,
+  teams: NormalizedTeam[],
+  fetchedAt: string,
+  freshness: NormalizedSportsDataBatch["freshness"],
+): TournamentGroup[] {
+  const teamsByGroupCode = new Map<string, NormalizedTeam[]>();
+
+  for (const team of teams) {
+    if (!team.groupCode) {
+      continue;
+    }
+
+    teamsByGroupCode.set(team.groupCode, [...(teamsByGroupCode.get(team.groupCode) ?? []), team]);
+  }
+
+  return [...teamsByGroupCode.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([groupCode, groupTeams], index) => ({
+      id: tournamentGroupDocumentId(request.competitionId, request.seasonId, groupCode),
+      competitionId: request.competitionId,
+      seasonId: request.seasonId,
+      code: groupCode,
+      name: `Group ${groupCode}`,
+      teamIds: groupTeams.map((team) => team.id).sort(),
+      sortOrder: index,
+      visibility: "published",
+      freshness,
+      updatedAt: fetchedAt,
+    }));
 }
 
 function mapMockMatch(
@@ -281,6 +319,8 @@ export function normalizeMockMatchStatus(status: string): MatchStatus {
     case "FINISHED":
     case "FT":
       return "FINISHED";
+    case "CORRECTED":
+      return "CORRECTED";
     case "POSTPONED":
       return "POSTPONED";
     case "CANCELLED":
@@ -288,6 +328,8 @@ export function normalizeMockMatchStatus(status: string): MatchStatus {
       return "CANCELLED";
     case "ABANDONED":
       return "ABANDONED";
+    case "VOID":
+      return "VOID";
     default:
       throw new ProviderDataError(`Unsupported mock match status: ${status}`);
   }

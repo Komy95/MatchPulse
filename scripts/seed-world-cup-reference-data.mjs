@@ -54,6 +54,51 @@ const teams = [
     providerExternalId: "can",
   },
 ];
+const tournamentGroups = [
+  {
+    id: "fifa-world-cup-world-cup-2026-group-a",
+    code: "A",
+    name: "Group A",
+    teamIds: teams.map((team) => team.id),
+    sortOrder: 0,
+  },
+];
+const players = [
+  {
+    id: "fifa-world-cup-world-cup-2026-player-mock-usa-local-forward",
+    teamId: "mock-usa",
+    displayName: "Local Forward",
+    countryCode: "US",
+    position: "forward",
+    shirtNumber: 9,
+    status: "active",
+  },
+  {
+    id: "fifa-world-cup-world-cup-2026-player-mock-can-local-goalkeeper",
+    teamId: "mock-can",
+    displayName: "Local Goalkeeper",
+    countryCode: "CA",
+    position: "goalkeeper",
+    shirtNumber: 1,
+    status: "active",
+  },
+];
+const squads = [
+  {
+    id: "fifa-world-cup-world-cup-2026-squad-mock-usa",
+    teamId: "mock-usa",
+    status: "provisional",
+    playerIds: ["fifa-world-cup-world-cup-2026-player-mock-usa-local-forward"],
+    publishedAt: null,
+  },
+  {
+    id: "fifa-world-cup-world-cup-2026-squad-mock-can",
+    teamId: "mock-can",
+    status: "provisional",
+    playerIds: ["fifa-world-cup-world-cup-2026-player-mock-can-local-goalkeeper"],
+    publishedAt: null,
+  },
+];
 const matches = [
   {
     id: "mock-match-001",
@@ -62,6 +107,7 @@ const matches = [
     kickoffAt: "2026-06-12T20:00:00.000Z",
     lockAt: "2026-06-12T20:00:00.000Z",
     status: "SCHEDULED",
+    lifecycleStatus: "scheduled",
     stage: "GROUP_STAGE",
     groupCode: "A",
     providerExternalId: "match-001",
@@ -70,6 +116,26 @@ const matches = [
       city: "Seattle",
       countryCode: "US",
     },
+  },
+];
+const bracketNodes = [
+  {
+    id: "fifa-world-cup-world-cup-2026-bracket-round-of-32-01",
+    stage: "round-of-32",
+    matchId: null,
+    status: "unresolved",
+    sortOrder: 1,
+    homeSource: {
+      type: "group-rank",
+      groupId: "fifa-world-cup-world-cup-2026-group-a",
+      rank: 1,
+    },
+    awaySource: {
+      type: "placeholder",
+      label: "Best third-placed team",
+    },
+    winnerTargetNodeId: null,
+    loserTargetNodeId: null,
   },
 ];
 
@@ -98,11 +164,34 @@ batch.set(
     lastIngestedAt: fetchedAt,
     updatedAt: fetchedAt,
     teamCount: teams.length,
+    tournamentGroupCount: tournamentGroups.length,
+    squadCount: squads.length,
+    playerCount: players.length,
     matchCount: matches.length,
+    bracketNodeCount: bracketNodes.length,
     finalMatchCount: 0,
   },
   { merge: true },
 );
+
+for (const group of tournamentGroups) {
+  batch.set(
+    seasonRef.collection("tournamentGroups").doc(group.id),
+    {
+      competitionId,
+      seasonId,
+      code: group.code,
+      name: group.name,
+      teamIds: group.teamIds,
+      sortOrder: group.sortOrder,
+      visibility: "published",
+      provider: null,
+      freshness,
+      updatedAt: fetchedAt,
+    },
+    { merge: true },
+  );
+}
 
 for (const team of teams) {
   batch.set(
@@ -113,8 +202,47 @@ for (const team of teams) {
       name: team.name,
       shortName: team.shortName,
       countryCode: team.countryCode,
+      status: "confirmed",
       groupCode: team.groupCode,
       provider: providerMetadata(team.providerExternalId),
+      freshness,
+      updatedAt: fetchedAt,
+    },
+    { merge: true },
+  );
+}
+
+for (const player of players) {
+  batch.set(
+    seasonRef.collection("players").doc(player.id),
+    {
+      competitionId,
+      seasonId,
+      teamId: player.teamId,
+      displayName: player.displayName,
+      countryCode: player.countryCode,
+      position: player.position,
+      shirtNumber: player.shirtNumber,
+      status: player.status,
+      provider: null,
+      freshness,
+      updatedAt: fetchedAt,
+    },
+    { merge: true },
+  );
+}
+
+for (const squad of squads) {
+  batch.set(
+    seasonRef.collection("squads").doc(squad.id),
+    {
+      competitionId,
+      seasonId,
+      teamId: squad.teamId,
+      status: squad.status,
+      playerIds: squad.playerIds,
+      publishedAt: squad.publishedAt,
+      provider: null,
       freshness,
       updatedAt: fetchedAt,
     },
@@ -133,6 +261,7 @@ for (const match of matches) {
       kickoffAt: match.kickoffAt,
       lockAt: match.lockAt,
       status: match.status,
+      lifecycleStatus: match.lifecycleStatus,
       stage: match.stage,
       groupCode: match.groupCode,
       venue: match.venue,
@@ -150,10 +279,32 @@ for (const match of matches) {
   );
 }
 
+for (const node of bracketNodes) {
+  batch.set(
+    seasonRef.collection("bracketNodes").doc(node.id),
+    {
+      competitionId,
+      seasonId,
+      stage: node.stage,
+      matchId: node.matchId,
+      status: node.status,
+      sortOrder: node.sortOrder,
+      homeSource: node.homeSource,
+      awaySource: node.awaySource,
+      winnerTargetNodeId: node.winnerTargetNodeId,
+      loserTargetNodeId: node.loserTargetNodeId,
+      provider: null,
+      freshness,
+      updatedAt: fetchedAt,
+    },
+    { merge: true },
+  );
+}
+
 await batch.commit();
 
 console.log(
-  `Seeded ${competitionId}/${seasonId}: ${teams.length} teams, ${matches.length} matches.`,
+  `Seeded ${competitionId}/${seasonId}: ${teams.length} teams, ${matches.length} matches, ${tournamentGroups.length} groups, ${squads.length} squads, ${players.length} players, ${bracketNodes.length} bracket nodes.`,
 );
 
 function providerMetadata(externalId) {

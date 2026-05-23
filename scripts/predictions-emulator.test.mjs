@@ -94,6 +94,10 @@ test("local reference seed creates canonical documents and is idempotent", async
   const seasonSnap = await seasonRef.get();
   const teamsSnap = await seasonRef.collection("teams").get();
   const matchesSnap = await seasonRef.collection("matches").get();
+  const tournamentGroupsSnap = await seasonRef.collection("tournamentGroups").get();
+  const squadsSnap = await seasonRef.collection("squads").get();
+  const playersSnap = await seasonRef.collection("players").get();
+  const bracketNodesSnap = await seasonRef.collection("bracketNodes").get();
 
   assert.equal(firstRun, true);
   assert.equal(secondRun, true);
@@ -101,6 +105,10 @@ test("local reference seed creates canonical documents and is idempotent", async
   assert.equal(seasonSnap.exists, true);
   assert.equal(teamsSnap.size, 2);
   assert.equal(matchesSnap.size, 1);
+  assert.equal(tournamentGroupsSnap.size, 1);
+  assert.equal(squadsSnap.size, 2);
+  assert.equal(playersSnap.size, 2);
+  assert.equal(bracketNodesSnap.size, 1);
 
   const match = matchesSnap.docs[0].data();
   assert.equal(typeof match.kickoffAt, "string");
@@ -110,10 +118,15 @@ test("local reference seed creates canonical documents and is idempotent", async
   assert.equal(match.competitionId, "fifa-world-cup");
   assert.equal(match.seasonId, "world-cup-2026");
   assert.equal(match.status, "SCHEDULED");
+  assert.equal(match.lifecycleStatus, "scheduled");
   assert.equal(match.stage, "GROUP_STAGE");
   assert.equal(match.groupCode, "A");
   assert.equal(typeof match.homeTeamId, "string");
   assert.equal(typeof match.awayTeamId, "string");
+
+  const bracketNode = bracketNodesSnap.docs[0].data();
+  assert.equal(bracketNode.status, "unresolved");
+  assert.equal(bracketNode.homeSource.type, "group-rank");
 });
 
 test("prediction save after lock is rejected and does not write", async () => {
@@ -329,6 +342,78 @@ test("direct Firestore client writes are denied by security rules", async () => 
       setDoc(doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/matches/new-match"), {
         status: "SCHEDULED",
       }),
+    /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
+  );
+  await assert.rejects(
+    () =>
+      setDoc(
+        doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/tournamentGroups/group-z"),
+        {
+          code: "Z",
+        },
+      ),
+    /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
+  );
+  await assert.rejects(
+    () =>
+      setDoc(doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/squads/squad-z"), {
+        status: "final",
+      }),
+    /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
+  );
+  await assert.rejects(
+    () =>
+      setDoc(
+        doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/bracketNodes/node-z"),
+        {
+          status: "unresolved",
+        },
+      ),
+    /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
+  );
+
+  await deleteApp(app);
+});
+
+test("published reference tournament data is public-readable and client writes are denied", async () => {
+  await importSeedScript();
+  const { app, db } = await signedInClient("reference-reader");
+
+  const teamSnap = await getDoc(
+    doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/teams/mock-usa"),
+  );
+  const groupSnap = await getDoc(
+    doc(
+      db,
+      "competitions/fifa-world-cup/seasons/world-cup-2026/tournamentGroups/fifa-world-cup-world-cup-2026-group-a",
+    ),
+  );
+  const squadSnap = await getDoc(
+    doc(
+      db,
+      "competitions/fifa-world-cup/seasons/world-cup-2026/squads/fifa-world-cup-world-cup-2026-squad-mock-usa",
+    ),
+  );
+  const bracketSnap = await getDoc(
+    doc(
+      db,
+      "competitions/fifa-world-cup/seasons/world-cup-2026/bracketNodes/fifa-world-cup-world-cup-2026-bracket-round-of-32-01",
+    ),
+  );
+
+  assert.equal(teamSnap.exists(), true);
+  assert.equal(groupSnap.exists(), true);
+  assert.equal(squadSnap.exists(), true);
+  assert.equal(bracketSnap.exists(), true);
+
+  await assert.rejects(
+    () =>
+      setDoc(
+        doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/players/player-z"),
+        {
+          displayName: "Client Write",
+        },
+      ),
     /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/,
   );
 

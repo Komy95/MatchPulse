@@ -30,8 +30,12 @@ This document is the canonical Firestore data model for the MVP.
 | `groups/{groupId}/seasons/{groupSeasonId}/leaderboardSnapshots/{snapshotId}` | Private group-season standings snapshots | Active members | Server routes/jobs only |
 | `competitions/{competitionId}` | FIFA World Cup and future competition metadata | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}` | Provider-normalized competition season or tournament instance | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/tournamentGroups/{tournamentGroupId}` | Central tournament group table inputs | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}` | Season participants | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/players/{playerId}` | Central player reference records for squads and team pages | Public | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/squads/{squadId}` | Team squad state and player membership | Public | Server jobs/admin only |
 | `competitions/{competitionId}/seasons/{seasonId}/matches/{matchId}` | Season fixtures, status, scores, and lock times | Public for World Cup fixtures | Server jobs/admin only |
+| `competitions/{competitionId}/seasons/{seasonId}/bracketNodes/{bracketNodeId}` | Knockout bracket structure and participant sources | Public | Server jobs/admin only |
 | `teamMetricSnapshots/{snapshotId}` | Rankings, form, ratings, freshness | Public | Server jobs only |
 | `matchInsights/{matchId}` | AI insight outputs and metadata | Public for public matches; restricted for private contexts | Server jobs/routes only |
 | `simulationRuns/{simulationId}` | Public and custom simulation metadata/results | Public if public, requester if private | Server jobs/routes only |
@@ -275,7 +279,28 @@ Fields:
 - `updatedAt`
 - `teamCount`
 - `matchCount`
+- `tournamentGroupCount`
+- `squadCount`
+- `playerCount`
+- `bracketNodeCount`
 - `finalMatchCount`
+
+### `competitions/{competitionId}/seasons/{seasonId}/tournamentGroups/{tournamentGroupId}`
+
+Stores central tournament group definitions. Private groups reference these indirectly through the canonical season and never duplicate group tables.
+
+Fields:
+
+- `competitionId`
+- `seasonId`
+- `code`
+- `name`
+- `teamIds`
+- `sortOrder`
+- `visibility`
+- `provider`
+- `freshness`
+- `updatedAt`
 
 ### `competitions/{competitionId}/seasons/{seasonId}/teams/{teamId}`
 
@@ -288,7 +313,40 @@ Fields:
 - `name`
 - `shortName`
 - `countryCode`
+- `status`: `confirmed`, `placeholder`, or `eliminated`
 - `groupCode`
+- `provider`
+- `freshness`
+- `updatedAt`
+
+### `competitions/{competitionId}/seasons/{seasonId}/players/{playerId}`
+
+Fields:
+
+- `competitionId`
+- `seasonId`
+- `teamId`
+- `displayName`
+- `countryCode`
+- `position`
+- `shirtNumber`
+- `status`: `active`, `replaced`, `withdrawn`, or `injured`
+- `provider`
+- `freshness`
+- `updatedAt`
+
+Do not store player photos unless licensing is confirmed.
+
+### `competitions/{competitionId}/seasons/{seasonId}/squads/{squadId}`
+
+Fields:
+
+- `competitionId`
+- `seasonId`
+- `teamId`
+- `status`: `unknown`, `provisional`, `final`, or `updated`
+- `playerIds`
+- `publishedAt`
 - `provider`
 - `freshness`
 - `updatedAt`
@@ -304,6 +362,7 @@ Fields:
 - `kickoffAt`
 - `lockAt`
 - `status`
+- `lifecycleStatus`: `scheduled`, `live`, `finished`, `corrected`, `postponed`, `cancelled`, `abandoned`, or `void`
 - `stage`
 - `groupCode`
 - `venue`
@@ -317,7 +376,27 @@ Fields:
 - `freshness`
 - `updatedAt`
 
-Match IDs are deterministic and provider-scoped. `kickoffAt`, `lockAt`, provider freshness, and all provider update timestamps must be UTC ISO timestamps. Future prediction locking and scoring jobs must read this canonical match document before accepting prediction saves or scoring final results.
+Match IDs are deterministic and provider-scoped. `kickoffAt`, `lockAt`, provider freshness, and all provider update timestamps must be UTC ISO timestamps. Future prediction locking and scoring jobs must read this canonical match document before accepting prediction saves or scoring final results. The existing uppercase `status` field remains for current scoring compatibility; new tournament consumers should use lowercase `lifecycleStatus`.
+
+### `competitions/{competitionId}/seasons/{seasonId}/bracketNodes/{bracketNodeId}`
+
+Fields:
+
+- `competitionId`
+- `seasonId`
+- `stage`
+- `matchId`
+- `status`: `unresolved`, `scheduled`, `live`, or `finished`
+- `sortOrder`
+- `homeSource`
+- `awaySource`
+- `winnerTargetNodeId`
+- `loserTargetNodeId`
+- `provider`
+- `freshness`
+- `updatedAt`
+
+Participant sources may point to a team, group rank, best-third slot, winner/loser of another bracket node, or placeholder label. This keeps the World Cup 2026 Round of 32 bracket config-driven.
 
 ### `matchInsights/{matchId}`
 
@@ -388,8 +467,12 @@ Public documents:
 
 - `competitions`
 - `competitions/{competitionId}/seasons`
+- `competitions/{competitionId}/seasons/{seasonId}/tournamentGroups`
 - `competitions/{competitionId}/seasons/{seasonId}/teams`
+- `competitions/{competitionId}/seasons/{seasonId}/players`
+- `competitions/{competitionId}/seasons/{seasonId}/squads`
 - `competitions/{competitionId}/seasons/{seasonId}/matches`
+- `competitions/{competitionId}/seasons/{seasonId}/bracketNodes`
 - `teamMetricSnapshots`
 - public `matchInsights`
 - public `simulationRuns`

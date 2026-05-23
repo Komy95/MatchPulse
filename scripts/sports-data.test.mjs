@@ -6,6 +6,8 @@ import ts from "typescript";
 
 const moduleFiles = new Map([
   ["@/lib/sports-data/ids", "lib/sports-data/ids.ts"],
+  ["@/lib/sports-data/domain", "lib/sports-data/domain.ts"],
+  ["@/lib/sports-data/validation", "lib/sports-data/validation.ts"],
   ["@/lib/sports-data/providers/types", "lib/sports-data/providers/types.ts"],
   ["@/lib/sports-data/providers/mock", "lib/sports-data/providers/mock.ts"],
   ["@/lib/sports-data/firestore/writer", "lib/sports-data/firestore/writer.ts"],
@@ -68,9 +70,21 @@ const {
   normalizeMockMatchStatus,
 } = loadModule("@/lib/sports-data/providers/mock");
 const {
+  bracketNodeDocumentId,
   deterministicProviderEntityId,
   deterministicSportsDocumentId,
+  playerDocumentId,
+  squadDocumentId,
+  teamDocumentId,
+  tournamentGroupDocumentId,
 } = loadModule("@/lib/sports-data/ids");
+const {
+  validateBracketNode,
+  validateSquad,
+  validateTeam,
+  validateTournamentGroup,
+  validateTournamentReferenceData,
+} = loadModule("@/lib/sports-data/validation");
 const { ingestCompetitionSeason } = loadModule("@/lib/sports-data/ingestion/service");
 const { summarizeBatch } = loadModule("@/lib/sports-data/firestore/writer");
 
@@ -128,6 +142,144 @@ function basePayload(overrides = {}) {
   };
 }
 
+function referenceSeason() {
+  return {
+    id: "world-cup-2026",
+    competitionId: "fifa-world-cup",
+  };
+}
+
+function referenceMetadata(externalId = "local") {
+  return {
+    providerId: "mock",
+    externalId,
+    sourceName: "MatchPulse local test",
+    fetchedAt: "2026-05-22T12:00:00.000Z",
+  };
+}
+
+function referenceFreshness() {
+  return {
+    providerId: "mock",
+    fetchedAt: "2026-05-22T12:00:00.000Z",
+    staleAfter: "2026-05-23T00:00:00.000Z",
+  };
+}
+
+function referenceTeam(overrides = {}) {
+  return {
+    id: "mock-usa",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    name: "United States",
+    shortName: "USA",
+    countryCode: "US",
+    status: "confirmed",
+    groupCode: "A",
+    provider: referenceMetadata("usa"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function referenceTournamentGroup(overrides = {}) {
+  return {
+    id: "fifa-world-cup-world-cup-2026-group-a",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    code: "A",
+    name: "Group A",
+    teamIds: ["mock-usa"],
+    sortOrder: 0,
+    visibility: "published",
+    provider: referenceMetadata("group-a"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function referencePlayer(overrides = {}) {
+  return {
+    id: "player-1",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    teamId: "mock-usa",
+    displayName: "Alex Test",
+    countryCode: "US",
+    position: "forward",
+    shirtNumber: 9,
+    status: "active",
+    provider: referenceMetadata("player-1"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function referenceSquad(overrides = {}) {
+  return {
+    id: "squad-1",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    teamId: "mock-usa",
+    status: "provisional",
+    playerIds: ["player-1"],
+    publishedAt: null,
+    provider: referenceMetadata("squad-1"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function referenceMatch(overrides = {}) {
+  return {
+    id: "match-1",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    homeTeamId: "mock-usa",
+    awayTeamId: "mock-usa",
+    kickoffAt: "2026-06-12T20:00:00.000Z",
+    lockAt: "2026-06-12T20:00:00.000Z",
+    status: "SCHEDULED",
+    lifecycleStatus: "scheduled",
+    stage: "GROUP_STAGE",
+    groupCode: "A",
+    score: {
+      homeScore90: null,
+      awayScore90: null,
+      homeScoreFinal: null,
+      awayScoreFinal: null,
+    },
+    provider: referenceMetadata("match-1"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function referenceBracketNode(overrides = {}) {
+  return {
+    id: "node-1",
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    stage: "round-of-32",
+    matchId: null,
+    status: "unresolved",
+    sortOrder: 1,
+    homeSource: { type: "placeholder", label: "Winner Group A" },
+    awaySource: { type: "placeholder", label: "Runner-up Group B" },
+    winnerTargetNodeId: null,
+    loserTargetNodeId: null,
+    provider: referenceMetadata("node-1"),
+    freshness: referenceFreshness(),
+    updatedAt: "2026-05-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
 class InMemorySportsDataWriter {
   documents = new Map();
   writeCount = 0;
@@ -175,9 +327,12 @@ test("mock provider maps raw provider data into normalized models", async () => 
 
   assert.equal(batch.competition.id, "fifa-world-cup");
   assert.equal(batch.season.id, "world-cup-2026");
+  assert.equal(batch.tournamentGroups.length, 1);
   assert.equal(batch.teams.length, 2);
   assert.equal(batch.matches.length, 1);
+  assert.equal(batch.teams[0].status, undefined);
   assert.equal(batch.matches[0].status, "FINISHED");
+  assert.equal(batch.matches[0].lifecycleStatus, undefined);
   assert.equal(batch.matches[0].kickoffAt, "2026-06-12T20:00:00.000Z");
   assert.equal(batch.matches[0].lockAt, batch.matches[0].kickoffAt);
   assert.equal(batch.matches[0].provider.providerId, "mock");
@@ -195,6 +350,86 @@ test("document ID generation is deterministic and provider-scoped", () => {
       fallbackParts: ["ignored"],
     }),
     "mock-match-001",
+  );
+  assert.equal(teamDocumentId("fifa-world-cup", "world-cup-2026", "United States"), "fifa-world-cup-world-cup-2026-team-united-states");
+  assert.equal(tournamentGroupDocumentId("fifa-world-cup", "world-cup-2026", "A"), "fifa-world-cup-world-cup-2026-group-a");
+  assert.equal(squadDocumentId("fifa-world-cup", "world-cup-2026", "mock-usa"), "fifa-world-cup-world-cup-2026-squad-mock-usa");
+  assert.equal(playerDocumentId("fifa-world-cup", "world-cup-2026", "mock-usa", "Alex Test"), "fifa-world-cup-world-cup-2026-player-mock-usa-alex-test");
+  assert.equal(bracketNodeDocumentId("fifa-world-cup", "world-cup-2026", "round-of-32", 1), "fifa-world-cup-world-cup-2026-bracket-round-of-32-01");
+});
+
+test("valid team model passes central tournament validation", () => {
+  const season = referenceSeason();
+  const team = referenceTeam();
+
+  assert.doesNotThrow(() => validateTeam(team, season));
+});
+
+test("valid tournament group model passes central tournament validation", () => {
+  const season = referenceSeason();
+  const team = referenceTeam();
+  const group = referenceTournamentGroup({ teamIds: [team.id] });
+
+  assert.doesNotThrow(() => validateTournamentGroup(group, season, new Set([team.id])));
+});
+
+test("valid squad model passes central tournament validation", () => {
+  const season = referenceSeason();
+  const team = referenceTeam();
+  const player = referencePlayer({ teamId: team.id });
+  const squad = referenceSquad({ teamId: team.id, playerIds: [player.id] });
+
+  assert.doesNotThrow(() =>
+    validateSquad(squad, season, new Set([team.id]), new Set([player.id])),
+  );
+});
+
+test("valid bracket node model passes central tournament validation", () => {
+  const season = referenceSeason();
+  const team = referenceTeam();
+  const group = referenceTournamentGroup({ teamIds: [team.id] });
+  const match = referenceMatch({ homeTeamId: team.id, awayTeamId: team.id });
+  const node = referenceBracketNode({
+    matchId: match.id,
+    homeSource: { type: "group-rank", groupId: group.id, rank: 1 },
+    awaySource: { type: "team", teamId: team.id },
+  });
+
+  assert.doesNotThrow(() =>
+    validateBracketNode(
+      node,
+      season,
+      new Set([match.id]),
+      new Set([node.id]),
+      new Set([team.id]),
+      new Set([group.id]),
+    ),
+  );
+});
+
+test("central tournament validation rejects invalid references", () => {
+  const season = referenceSeason();
+  const team = referenceTeam();
+  const player = referencePlayer({ teamId: team.id });
+  const squad = referenceSquad({ teamId: team.id, playerIds: [player.id, "missing-player"] });
+
+  assert.throws(
+    () =>
+      validateTournamentReferenceData({
+        season,
+        tournamentGroups: [referenceTournamentGroup({ teamIds: ["missing-team"] })],
+        teams: [team],
+        players: [player],
+        squads: [squad],
+        matches: [referenceMatch({ homeTeamId: team.id, awayTeamId: "missing-team" })],
+        bracketNodes: [
+          referenceBracketNode({
+            matchId: "missing-match",
+            homeSource: { type: "winner", bracketNodeId: "missing-node" },
+          }),
+        ],
+      }),
+    /unknown team|unknown player|unknown match|unknown bracket node/,
   );
 });
 
