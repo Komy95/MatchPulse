@@ -3,6 +3,7 @@ substitutions:
   _SERVICE: matchpulse-stage
   _REPOSITORY: matchpulse
   _IMAGE: matchpulse-web
+  _ENV_FILE: deploy/staging.env.yaml
 
 steps:
   - name: gcr.io/cloud-builders/docker
@@ -11,22 +12,22 @@ steps:
     args:
       - -ceu
       - |
-        ENV_FILE="deploy/staging.env.yaml"
+        ENV_FILE="${_ENV_FILE}"
         IMAGE_URI="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}"
 
-        if [ ! -f "${ENV_FILE}" ]; then
-          echo "Missing ${ENV_FILE}. Copy deploy/staging.env.yaml.example and fill staging values before running Cloud Build." >&2
+        if [ ! -f "$${ENV_FILE}" ]; then
+          echo "Missing $${ENV_FILE}. Copy deploy/staging.env.yaml.example and fill staging values before running Cloud Build." >&2
           exit 1
         fi
 
         get_env() {
           key="$1"
-          value="$(grep -E "^${key}:" "${ENV_FILE}" | head -n 1 | sed -E "s/^${key}:[[:space:]]*//; s/^\"//; s/\"$//")"
-          if [ -z "${value}" ]; then
-            echo "Missing ${key} in ${ENV_FILE}" >&2
+          value="$(grep -E "^$${key}:" "$${ENV_FILE}" | head -n 1 | sed -E "s/^$${key}:[[:space:]]*//; s/^\"//; s/\"$//")"
+          if [ -z "$${value}" ]; then
+            echo "Missing $${key} in $${ENV_FILE}" >&2
             exit 1
           fi
-          printf '%s' "${value}"
+          printf '%s' "$${value}"
         }
 
         docker build \
@@ -48,7 +49,7 @@ steps:
           --build-arg PUBLIC_SIM_CACHE_TTL_SEC="$(get_env PUBLIC_SIM_CACHE_TTL_SEC)" \
           --build-arg AD_PROVIDER="$(get_env AD_PROVIDER)" \
           --build-arg CONSENT_MODE="$(get_env CONSENT_MODE)" \
-          -t "${IMAGE_URI}" \
+          -t "$${IMAGE_URI}" \
           .
 
   - name: gcr.io/cloud-builders/docker
@@ -68,7 +69,7 @@ steps:
       - --region=${_REGION}
       - --platform=managed
       - --allow-unauthenticated
-      - --env-vars-file=deploy/staging.env.yaml
+      - --env-vars-file=${_ENV_FILE}
 
 images:
   - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:${SHORT_SHA}

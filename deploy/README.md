@@ -104,7 +104,9 @@ NEXT_PUBLIC_APP_URL: "https://matchpulse-stage-placeholder"
 Then submit the build:
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit \
+  --config cloudbuild.yaml \
+  --substitutions _REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml
 ```
 
 Get the deployed Cloud Run URL:
@@ -141,7 +143,9 @@ matchpulse-stage-xxxxx-ew.a.run.app
 Next.js public env values are used during `npm run build`, so redeploy after `NEXT_PUBLIC_APP_URL` is set:
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit \
+  --config cloudbuild.yaml \
+  --substitutions _REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml
 ```
 
 ## 10. Check Health
@@ -163,7 +167,7 @@ Cloud Run sets `NODE_ENV=production`; app environment is controlled by `APP_ENV=
 ## Notes
 
 - `deploy/staging.env.yaml` is intentionally not committed.
-- `cloudbuild.yaml` reads `deploy/staging.env.yaml` for Docker build args because Firebase public browser config must be available during `next build`.
+- `cloudbuild.yaml` reads the `_ENV_FILE` Cloud Build substitution for Docker build args because Firebase public browser config must be available during `next build`.
 - The same env file is passed to Cloud Run with `--env-vars-file`.
 - No Firebase emulator variables should be present in staging.
 - No secrets are required for the current mock sports provider staging deployment.
