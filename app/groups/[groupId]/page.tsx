@@ -7,6 +7,7 @@ import { Badge, ButtonLink, Card } from "@/components/ui/primitives";
 import { getAuthenticatedUserContext } from "@/lib/auth/user-context";
 import { getGroupDetail, listGroupSeasons } from "@/lib/groups/service";
 import { listGroupSeasonMatchesWithPredictions } from "@/lib/predictions/service";
+import { getWorldCupOverview } from "@/lib/world-cup/reference-data";
 
 export default async function GroupDetailPage({
   params,
@@ -22,9 +23,10 @@ export default async function GroupDetailPage({
   }
 
   const { groupId } = await params;
-  const [group, seasonsResponse] = await Promise.all([
+  const [group, seasonsResponse, tournamentOverview] = await Promise.all([
     getGroupDetail(groupId, user.uid),
     listGroupSeasons(groupId, user.uid),
+    getWorldCupOverview(),
   ]);
   const matchResponse = await listGroupSeasonMatchesWithPredictions({
     groupId,
@@ -83,6 +85,28 @@ export default async function GroupDetailPage({
             <SeasonMetric label="Picks" value={group.activeGroupSeason.predictionMode} />
             <SeasonMetric label="Booster" value={group.activeGroupSeason.allowBooster ? "On" : "Off"} />
             <SeasonMetric label="Visibility" value={group.activeGroupSeason.predictionVisibility} />
+          </div>
+        </Card>
+
+        <Card>
+          <p className="text-sm font-semibold text-pitchGreen">Tournament layer</p>
+          <h2 className="mt-2 text-2xl font-semibold">World Cup 2026 inside this group</h2>
+          <p className="mt-2 text-sm leading-6 text-secondaryText">
+            This private pool references the central tournament season. Predictions and leaderboard
+            entries stay private to this group.
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            <SeasonMetric label="Teams" value={`${tournamentOverview.teams.length}`} />
+            <SeasonMetric label="Groups" value={`${tournamentOverview.groups.length}`} />
+            <SeasonMetric label="Fixtures" value={`${tournamentOverview.fixtures.length}`} />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ButtonLink href="/world-cup-2026/fixtures" variant="secondary">
+              View fixtures
+            </ButtonLink>
+            <ButtonLink href="/world-cup-2026/bracket" variant="secondary">
+              View bracket
+            </ButtonLink>
           </div>
         </Card>
 

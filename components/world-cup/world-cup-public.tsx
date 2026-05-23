@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { Badge, ButtonLink, Card, FixtureCard, cn } from "@/components/ui/primitives";
 import type {
+  WorldCupBracket,
+  WorldCupBracketNode,
+  WorldCupFixtures,
   WorldCupGroupWithTeams,
+  WorldCupMatch,
   WorldCupOverview,
   WorldCupPlayer,
+  WorldCupSeason,
+  WorldCupSource,
   WorldCupSquad,
   WorldCupTeam,
   WorldCupTeamDetail,
 } from "@/lib/world-cup/reference-data";
-import { readableSquadStatus } from "@/lib/world-cup/view-model";
+import { readableBracketSource, readableSquadStatus, readableStage } from "@/lib/world-cup/view-model";
 
 export function WorldCupShell({
   children,
@@ -45,6 +51,18 @@ export function WorldCupShell({
               >
                 Teams
               </Link>
+              <Link
+                className="hidden rounded-sm px-3 py-2 text-white/78 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-stadiumNavy sm:inline-flex"
+                href="/world-cup-2026/fixtures"
+              >
+                Fixtures
+              </Link>
+              <Link
+                className="hidden rounded-sm px-3 py-2 text-white/78 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-stadiumNavy sm:inline-flex"
+                href="/world-cup-2026/bracket"
+              >
+                Bracket
+              </Link>
             </nav>
           </header>
 
@@ -79,6 +97,12 @@ export function WorldCupOverviewPage({ overview }: { overview: WorldCupOverview 
           <ButtonLink href="/world-cup-2026/teams" variant="secondary">
             View teams
           </ButtonLink>
+          <ButtonLink href="/world-cup-2026/fixtures" variant="secondary">
+            View fixtures
+          </ButtonLink>
+          <ButtonLink href="/world-cup-2026/bracket" variant="secondary">
+            View bracket
+          </ButtonLink>
         </div>
       </Card>
 
@@ -97,7 +121,22 @@ export function WorldCupOverviewPage({ overview }: { overview: WorldCupOverview 
             ))}
           </div>
         ) : null}
+        <SourceMeta className="mt-4" season={season} />
       </Card>
+
+      {season?.format ? (
+        <Card className="lg:col-span-2">
+          <p className="text-sm font-semibold text-pitchGreen">Tournament format</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <InfoRow label="Teams" value={String(season.format.teamCount ?? season.teamCount)} />
+            <InfoRow label="Groups" value={String(season.format.groupCount ?? season.tournamentGroupCount)} />
+            <InfoRow label="Knockout starts" value={readableStage(season.format.knockoutStartsAt ?? "round_of_32")} />
+          </div>
+          {season.format.advancementRule ? (
+            <p className="mt-4 text-sm leading-6 text-secondaryText">{season.format.advancementRule}</p>
+          ) : null}
+        </Card>
+      ) : null}
 
       <div className="lg:col-span-2">
         <SectionHeader
@@ -122,6 +161,50 @@ export function WorldCupTeamsPage({ teams }: { teams: WorldCupTeam[] }) {
       {teams.map((team) => (
         <TeamListCard key={team.id} team={team} />
       ))}
+    </div>
+  );
+}
+
+export function WorldCupFixturesPage({ fixtures }: { fixtures: WorldCupFixtures }) {
+  return (
+    <div className="space-y-5">
+      <SourceMeta season={fixtures.season} />
+      {fixtures.groups.length ? (
+        fixtures.groups.map((group) => (
+          <section key={group.groupCode}>
+            <SectionHeader eyebrow={`Group ${group.groupCode}`} title={`${group.matches.length} fixtures`} />
+            <div className="space-y-3">
+              {group.matches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </div>
+          </section>
+        ))
+      ) : (
+        <EmptyState title="No fixtures published" body="Reference fixtures have not been seeded for this season yet." />
+      )}
+    </div>
+  );
+}
+
+export function WorldCupBracketPage({ bracket }: { bracket: WorldCupBracket }) {
+  return (
+    <div className="space-y-5">
+      <SourceMeta season={bracket.season} />
+      {bracket.stages.length ? (
+        bracket.stages.map((stage) => (
+          <section key={stage.stage}>
+            <SectionHeader eyebrow="Bracket" title={readableStage(stage.stage)} />
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {stage.nodes.map((node) => (
+                <BracketNodeCard key={node.id} node={node} />
+              ))}
+            </div>
+          </section>
+        ))
+      ) : (
+        <EmptyState title="No bracket nodes published" body="Bracket reference data has not been seeded yet." />
+      )}
     </div>
   );
 }
@@ -161,8 +244,23 @@ export function WorldCupTeamDetailPage({ detail }: { detail: WorldCupTeamDetail 
       ) : null}
 
       <div className="lg:col-span-2">
+        <SectionHeader eyebrow="Fixtures" title="Team fixtures" />
+        <div className="space-y-3">
+          {detail.fixtures.length ? (
+            detail.fixtures.map((match) => <MatchCard key={match.id} match={match} />)
+          ) : (
+            <EmptyState title="No fixtures available" body="This team does not have published central fixtures yet." />
+          )}
+        </div>
+      </div>
+
+      <div className="lg:col-span-2">
         <SectionHeader eyebrow="Squad" title="Players" />
         <SquadPanel players={players} squad={squad} />
+      </div>
+
+      <div className="lg:col-span-2">
+        <SourceMeta source={team.source ?? squad?.source ?? null} freshness={team.freshness ?? squad?.freshness ?? null} />
       </div>
     </div>
   );
@@ -180,6 +278,94 @@ function GroupGrid({ groups, compact = false }: { groups: WorldCupGroupWithTeams
       ))}
     </div>
   );
+}
+
+function MatchCard({ match }: { match: WorldCupMatch }) {
+  return (
+    <FixtureCard className="bg-card">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase text-mutedText">
+            {match.groupCode ? `Group ${match.groupCode}` : readableStage(match.stage)}
+            {match.matchday ? ` / Matchday ${match.matchday}` : ""}
+          </p>
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+            <TeamName team={match.homeTeam} fallback={match.homeSource} />
+            <span className="text-sm font-semibold text-secondaryText">vs</span>
+            <TeamName align="right" team={match.awayTeam} fallback={match.awaySource} />
+          </div>
+          <p className="mt-3 text-sm text-secondaryText">
+            {match.kickoffAt ? formatDateTime(match.kickoffAt) : "Time TBD"}
+            {" / "}
+            {match.venue ? [match.venue.name, match.venue.city].filter(Boolean).join(", ") : "Venue TBD"}
+          </p>
+        </div>
+        <Badge tone={match.lifecycleStatus === "finished" || match.status === "FINISHED" ? "green" : "blue"}>
+          {titleCase(match.lifecycleStatus ?? match.status)}
+        </Badge>
+      </div>
+      {match.score.homeScore90 != null && match.score.awayScore90 != null ? (
+        <div className="mt-4 rounded-md border border-line bg-cardWarm px-4 py-3 text-sm font-semibold">
+          Result: {match.score.homeScore90}-{match.score.awayScore90}
+        </div>
+      ) : null}
+      <SourceMeta className="mt-3" freshness={match.freshness} source={match.source} compact />
+    </FixtureCard>
+  );
+}
+
+function BracketNodeCard({ node }: { node: WorldCupBracketNode }) {
+  return (
+    <FixtureCard className="bg-card">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase text-mutedText">Match {node.position}</p>
+        <Badge tone={node.status === "finished" ? "green" : "gold"}>{titleCase(node.status)}</Badge>
+      </div>
+      <div className="mt-4 space-y-3">
+        <BracketParticipant team={node.homeTeam} source={node.homeSource} />
+        <BracketParticipant team={node.awayTeam} source={node.awaySource} />
+      </div>
+      {node.winnerTargetNodeId ? (
+        <p className="mt-4 text-xs leading-5 text-secondaryText">
+          Winner advances to {node.winnerTargetNodeId}
+        </p>
+      ) : null}
+      <SourceMeta className="mt-3" freshness={node.freshness} source={node.source} compact />
+    </FixtureCard>
+  );
+}
+
+function BracketParticipant({ team, source }: { team: WorldCupTeam | null; source: string | null }) {
+  if (team) {
+    return <TeamRow team={team} />;
+  }
+
+  return (
+    <div className="rounded-md border border-borderSoft bg-cardWarm px-3 py-3">
+      <p className="text-sm font-semibold">{readableBracketSource(source)}</p>
+      <p className="mt-1 text-xs text-secondaryText">Unresolved placeholder</p>
+    </div>
+  );
+}
+
+function TeamName({
+  team,
+  fallback,
+  align = "left",
+}: {
+  team: WorldCupTeam | null;
+  fallback: string | null;
+  align?: "left" | "right";
+}) {
+  const content = team ? (
+    <Link className="font-semibold text-stadiumNavy hover:text-worldCupBlue" href={`/world-cup-2026/teams/${team.id}`}>
+      {team.shortName}
+    </Link>
+  ) : (
+    <span className="font-semibold text-secondaryText">{fallback ?? "TBD"}</span>
+  );
+
+  return <div className={cn("min-w-0", align === "right" && "text-right")}>{content}</div>;
 }
 
 function GroupCard({ group }: { group: WorldCupGroupWithTeams }) {
@@ -322,6 +508,50 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SourceMeta({
+  season,
+  source,
+  freshness,
+  className,
+  compact = false,
+}: {
+  season?: WorldCupSeason | null;
+  source?: WorldCupSource | null;
+  freshness?: { fetchedAt: string | null; staleAfter: string | null; providerUpdatedAt: string | null } | null;
+  className?: string;
+  compact?: boolean;
+}) {
+  const resolvedSource = source ?? season?.source ?? null;
+  const resolvedFreshness = freshness ?? season?.freshness ?? null;
+
+  if (!resolvedSource && !resolvedFreshness) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        compact ? "text-xs leading-5 text-secondaryText" : "rounded-md border border-borderSoft bg-cardWarm p-4 text-sm leading-6 text-secondaryText",
+        className,
+      )}
+    >
+      {resolvedSource ? (
+        <p>
+          Source:{" "}
+          {resolvedSource.url ? (
+            <a className="font-semibold text-worldCupBlue hover:text-worldCupBlueDark" href={resolvedSource.url}>
+              {resolvedSource.name}
+            </a>
+          ) : (
+            <span className="font-semibold text-primaryText">{resolvedSource.name}</span>
+          )}
+        </p>
+      ) : null}
+      {resolvedFreshness?.fetchedAt ? <p>Updated: {formatDate(resolvedFreshness.fetchedAt)}</p> : null}
+    </div>
+  );
+}
+
 function TeamMark({ team, size = "md" }: { team: WorldCupTeam; size?: "md" | "lg" }) {
   return (
     <div
@@ -358,6 +588,17 @@ function formatDate(value: string) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZone: "UTC",
   }).format(new Date(value));
 }

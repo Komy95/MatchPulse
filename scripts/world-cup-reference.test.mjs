@@ -5,7 +5,16 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const moduleCache = new Map();
-const { buildGroupsWithTeams, readableSquadStatus, sortTeams } = loadTsModule("lib/world-cup/view-model.ts");
+const {
+  buildGroupsWithTeams,
+  buildTeamFixtureMap,
+  groupFixturesByGroup,
+  groupNodesByStage,
+  readableBracketSource,
+  readableSquadStatus,
+  sortFixtures,
+  sortTeams,
+} = loadTsModule("lib/world-cup/view-model.ts");
 
 test("world cup groups render teams from reference ids without hardcoded UI data", () => {
   const groups = buildGroupsWithTeams(
@@ -42,6 +51,39 @@ test("world cup squad status remains understandable when squad players are unkno
   assert.equal(readableSquadStatus("updated"), "Updated");
 });
 
+test("world cup fixtures group by group and tolerate missing kickoff times", () => {
+  const fixtures = sortFixtures([
+    fixture("match-b2", "B", 2, null),
+    fixture("match-a2", "A", 2, null),
+    fixture("match-a1", "A", 1, null),
+  ]);
+  const grouped = groupFixturesByGroup(fixtures);
+
+  assert.deepEqual(plain(fixtures.map((match) => match.id)), ["match-a1", "match-a2", "match-b2"]);
+  assert.deepEqual(plain(grouped.map((groupedFixtures) => groupedFixtures.groupCode)), ["A", "B"]);
+});
+
+test("world cup team fixture map includes home and away matches", () => {
+  const byTeam = buildTeamFixtureMap([
+    fixture("match-1", "A", 1, null, { homeTeamId: "mexico", awayTeamId: "canada" }),
+    fixture("match-2", "A", 2, null, { homeTeamId: "qatar", awayTeamId: "mexico" }),
+  ]);
+
+  assert.deepEqual(plain(byTeam.get("mexico")?.map((match) => match.id)), ["match-1", "match-2"]);
+});
+
+test("world cup bracket nodes group by stage and unresolved placeholders stay explicit", () => {
+  const grouped = groupNodesByStage([
+    bracketNode("final-1", "final", 1),
+    bracketNode("r32-2", "round_of_32", 2),
+    bracketNode("r32-1", "round_of_32", 1),
+  ]);
+
+  assert.equal(grouped[0].stage, "round_of_32");
+  assert.deepEqual(plain(grouped[0].nodes.map((node) => node.id)), ["r32-1", "r32-2"]);
+  assert.equal(readableBracketSource("TBD_R32_1_home"), "Round of 32 place to be confirmed");
+});
+
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -68,6 +110,62 @@ function team(id, name, groupPosition) {
     groupPosition,
     status: "confirmed",
     coachName: null,
+  };
+}
+
+function fixture(id, groupCode, matchday, kickoffAt, overrides = {}) {
+  return {
+    id,
+    competitionId: "fifa-world-cup",
+    seasonId: "world-cup-2026",
+    stage: "group",
+    groupCode,
+    matchday,
+    homeTeamId: null,
+    awayTeamId: null,
+    homeTeam: null,
+    awayTeam: null,
+    homeSource: null,
+    awaySource: null,
+    kickoffAt,
+    lockAt: kickoffAt,
+    venue: null,
+    status: "SCHEDULED",
+    lifecycleStatus: "scheduled",
+    score: {
+      homeScore90: null,
+      awayScore90: null,
+      homeScoreFinal: null,
+      awayScoreFinal: null,
+    },
+    winnerTeamId: null,
+    source: null,
+    freshness: null,
+    updatedAt: null,
+    ...overrides,
+  };
+}
+
+function bracketNode(id, stage, position) {
+  return {
+    id,
+    stage,
+    position,
+    matchId: null,
+    match: null,
+    status: "unresolved",
+    homeSource: "TBD_R32_1_home",
+    awaySource: "TBD_R32_1_away",
+    homeTeamId: null,
+    awayTeamId: null,
+    homeTeam: null,
+    awayTeam: null,
+    winnerTargetNodeId: null,
+    loserTargetNodeId: null,
+    mappingStatus: null,
+    source: null,
+    freshness: null,
+    updatedAt: null,
   };
 }
 

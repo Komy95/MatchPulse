@@ -637,6 +637,14 @@ function loadServiceModule() {
       return loadTsModule("lib/predictions/policy.ts", load, moduleCache);
     }
 
+    if (specifier === "@/lib/predictions/result-feedback") {
+      return loadTsModule("lib/predictions/result-feedback.ts", load, moduleCache);
+    }
+
+    if (specifier === "@/lib/scoring/domain") {
+      return loadTsModule("lib/scoring/domain.ts", load, moduleCache);
+    }
+
     throw new Error(`Unsupported test module import: ${specifier}`);
   }
 
