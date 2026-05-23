@@ -273,6 +273,23 @@ test("mock provider live updates include live, halftime, and finished matches on
   assert.equal(liveMatches[0].score.homeScore90, 1);
 });
 
+test("mock provider match state score overrides preserve existing score fields", async () => {
+  const provider = new MockSportsDataProvider(basePayload(), "2026-05-22T12:00:00.000Z");
+
+  provider.setMockMatchState("match-001", {
+    score: {
+      homeScore90: 3,
+    },
+  });
+
+  const match = await provider.fetchMatchDetails(request, "match-001");
+
+  assert.equal(match.score.homeScore90, 3);
+  assert.equal(match.score.awayScore90, 1);
+  assert.equal(match.score.homeScoreFinal, 2);
+  assert.equal(match.score.awayScoreFinal, 1);
+});
+
 test("mock provider resolves match details by provider external ID", async () => {
   const provider = new MockSportsDataProvider(basePayload(), "2026-05-22T12:00:00.000Z");
   const match = await provider.fetchMatchDetails(request, "match-001");

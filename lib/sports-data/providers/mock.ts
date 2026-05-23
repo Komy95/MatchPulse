@@ -91,10 +91,10 @@ export class MockSportsDataProvider implements SportsDataProvider {
   }
 
   setMockMatchState(externalId: string, overrides: Partial<MockMatch>): void {
-    this.mockMatchStates.set(externalId, {
-      ...this.mockMatchStates.get(externalId),
-      ...overrides,
-    });
+    this.mockMatchStates.set(
+      externalId,
+      mergeMockMatchOverride(this.mockMatchStates.get(externalId), overrides),
+    );
   }
 
   private payloadWithOverrides(): MockProviderPayload {
@@ -106,10 +106,35 @@ export class MockSportsDataProvider implements SportsDataProvider {
       ...this.payload,
       matches: this.payload.matches.map((match) => ({
         ...match,
-        ...this.mockMatchStates.get(match.externalId),
+        ...mergeMockMatchOverride(match, this.mockMatchStates.get(match.externalId)),
       })),
     };
   }
+}
+
+function mergeMockMatchOverride(
+  base: Partial<MockMatch> | undefined,
+  override: Partial<MockMatch> | undefined,
+): Partial<MockMatch> {
+  if (!base) {
+    return override ?? {};
+  }
+
+  if (!override) {
+    return base;
+  }
+
+  return {
+    ...base,
+    ...override,
+    score:
+      base.score || override.score
+        ? {
+            ...(base.score ?? {}),
+            ...(override.score ?? {}),
+          }
+        : undefined,
+  };
 }
 
 export function mapMockProviderPayload(
