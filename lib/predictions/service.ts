@@ -75,6 +75,17 @@ export async function listGroupSeasonMatchesWithPredictions({
     predictionsByMatchId.set(prediction.matchId, prediction);
   }
 
+  const matches = matchesSnap.docs
+    .map((doc) =>
+      serializeMatch({
+        id: doc.id,
+        match: doc.data() as ReferenceMatchDocument,
+        teams,
+        prediction: predictionsByMatchId.get(doc.id) ?? null,
+      }),
+    )
+    .sort(comparePredictionSummaries);
+
   return {
     groupId,
     groupSeasonId,
@@ -82,14 +93,7 @@ export async function listGroupSeasonMatchesWithPredictions({
     seasonId: groupSeason.seasonId,
     predictionMode: groupSeason.predictionMode,
     allowBooster: groupSeason.allowBooster,
-    matches: matchesSnap.docs.map((doc) =>
-      serializeMatch({
-        id: doc.id,
-        match: doc.data() as ReferenceMatchDocument,
-        teams,
-        prediction: predictionsByMatchId.get(doc.id) ?? null,
-      }),
-    ),
+    matches,
   };
 }
 
@@ -332,4 +336,15 @@ function missingTeam(id: string): TeamSummary {
     shortName: "TBD",
     countryCode: null,
   };
+}
+
+function comparePredictionSummaries(
+  left: MatchPredictionSummary,
+  right: MatchPredictionSummary,
+) {
+  if (left.locked !== right.locked) {
+    return left.locked ? 1 : -1;
+  }
+
+  return Date.parse(left.lockAt) - Date.parse(right.lockAt) || left.id.localeCompare(right.id);
 }

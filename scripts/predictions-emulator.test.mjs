@@ -569,12 +569,13 @@ function loadTsModule(file, requireFunction, moduleCache) {
   const transpiled = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
+      target: ts.ScriptTarget.ES2016,
     },
   });
   const sandbox = {
     exports: loadedModule.exports,
     module: loadedModule,
+    Promise,
     require: requireFunction,
   };
 
