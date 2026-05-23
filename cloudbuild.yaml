@@ -23,7 +23,7 @@ steps:
 
         get_env() {
           key="$1"
-          value="$(sed -n "s/^$${key}:[[:space:]]*//p" "$${ENV_FILE}" | sed -n "1p" | sed "s/^\"//; s/\"$//")"
+          value="$(sed -n "s/^$${key}:[[:space:]]*//p" "$${ENV_FILE}" | sed -n "1p" | tr -d '\r' | sed 's/^"//; s/"$//')"
           if [ -z "$${value}" ]; then
             echo "Missing $${key} in $${ENV_FILE}" >&2
             exit 1
