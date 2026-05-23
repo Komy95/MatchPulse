@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { LeaderboardSnapshot } from "@/lib/leaderboard/types";
+import { Badge, Button, Card } from "@/components/ui/primitives";
 
 type LeaderboardResponse = {
   groupId: string;
@@ -94,25 +95,21 @@ export function GroupSeasonLeaderboard({
   }
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-worldCupBlue">Leaderboard</p>
+          <p className="text-sm font-semibold text-pitchGreen">Leaderboard</p>
           <h2 className="mt-2 text-2xl font-semibold">Group standings</h2>
         </div>
-        {snapshot ? (
-          <span className="rounded-full bg-softSky px-3 py-1 text-xs font-medium">
-            {snapshot.entries.length} ranked
-          </span>
-        ) : null}
+        {snapshot ? <Badge tone="blue">{snapshot.entries.length} ranked</Badge> : null}
       </div>
 
       {loading ? (
-        <div className="mt-5 rounded-lg border border-borderSoft bg-base p-5 text-sm text-secondaryText">
+        <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5 text-sm text-secondaryText">
           Loading leaderboard...
         </div>
       ) : error ? (
-        <div className="mt-5 rounded-lg border border-[#E7B6AE] bg-softRed p-5 text-sm">
+        <div className="mt-5 rounded-md border border-canadaRed/25 bg-softRed p-5 text-sm">
           {error}
         </div>
       ) : !snapshot ? (
@@ -123,12 +120,9 @@ export function GroupSeasonLeaderboard({
             <EmptyLeaderboard />
           ) : (
             snapshot.entries.map((entry) => (
-              <article
-                className="rounded-lg border border-borderSoft bg-base p-4"
-                key={entry.userId}
-              >
+              <article className="rounded-lg border border-line bg-cardWarm p-4" key={entry.userId}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-softSky text-base font-semibold tabular-nums">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-worldCupBlue/20 bg-softSky text-base font-semibold tabular-nums text-worldCupBlue">
                     {entry.rank}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -136,13 +130,15 @@ export function GroupSeasonLeaderboard({
                       {entry.displayName ?? "Member"}
                     </h3>
                     <p className="mt-1 text-xs text-secondaryText">
-                      Exact {entry.exactCount} · GD {entry.goalDifferenceCount} · Tend{" "}
+                      Exact {entry.exactCount} - GD {entry.goalDifferenceCount} - Tend{" "}
                       {entry.tendencyCount}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-semibold tabular-nums">{entry.points}</p>
-                    <p className="text-xs text-secondaryText">pts</p>
+                    <p className="text-3xl font-semibold tabular-nums text-stadiumNavy">
+                      {entry.points}
+                    </p>
+                    <p className="text-xs font-semibold text-secondaryText">pts</p>
                   </div>
                 </div>
               </article>
@@ -155,22 +151,23 @@ export function GroupSeasonLeaderboard({
       )}
 
       {canRecalculate ? (
-        <button
-          className="mt-5 w-full rounded-md border border-borderSoft px-5 py-4 text-sm font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        <Button
+          className="mt-5 w-full"
           disabled={loading || recalculating}
           type="button"
+          variant="secondary"
           onClick={recalculate}
         >
           {recalculating ? "Recalculating..." : "Recalculate leaderboard"}
-        </button>
+        </Button>
       ) : null}
-    </section>
+    </Card>
   );
 }
 
 function EmptyLeaderboard() {
   return (
-    <div className="mt-5 rounded-lg border border-borderSoft bg-base p-5">
+    <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5">
       <h3 className="text-lg font-semibold">Leaderboard will appear after matches are scored.</h3>
     </div>
   );

@@ -2,6 +2,13 @@
 
 import { useMemo, useState } from "react";
 import type { MatchPredictionSummary } from "@/lib/predictions/types";
+import {
+  Badge,
+  Button,
+  Card,
+  FixtureCard,
+  ScoreInput as UiScoreInput,
+} from "@/components/ui/primitives";
 
 type PredictionDraft = {
   homeGoals: string;
@@ -107,19 +114,19 @@ export function PredictionEntry({
   }
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)] sm:p-7">
+    <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-worldCupBlue">Predictions</p>
+          <p className="text-sm font-semibold text-pitchGreen">Predictions</p>
           <h2 className="mt-2 text-2xl font-semibold leading-tight">Match picks</h2>
         </div>
-        <span className="rounded-full bg-softSky px-3 py-1 text-sm font-semibold">
+        <Badge tone="blue">
           {saveableCount} ready
-        </span>
+        </Badge>
       </div>
 
       {matches.length === 0 ? (
-        <div className="mt-5 rounded-lg border border-borderSoft bg-base p-5">
+        <div className="mt-5 rounded-md border border-borderSoft bg-cardWarm p-5">
           <h3 className="text-lg font-semibold">No matches seeded yet</h3>
           <p className="mt-2 text-sm leading-6 text-secondaryText">
             Seed local World Cup reference data to start entering predictions.
@@ -131,13 +138,10 @@ export function PredictionEntry({
             const draft = drafts[match.id];
 
             return (
-              <article
-                className="rounded-lg border border-borderSoft bg-base p-4"
-                key={match.id}
-              >
+              <FixtureCard key={match.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-medium text-secondaryText">
+                    <p className="text-xs font-semibold uppercase text-mutedText">
                       {formatKickoff(match.kickoffAt)}
                     </p>
                     <h3 className="mt-2 text-lg font-semibold leading-snug">
@@ -145,26 +149,22 @@ export function PredictionEntry({
                     </h3>
                     <p className="mt-1 text-sm text-secondaryText">
                       {match.stage}
-                      {match.groupCode ? ` · Group ${match.groupCode}` : ""}
+                      {match.groupCode ? ` - Group ${match.groupCode}` : ""}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
-                      match.locked ? "bg-softRed" : "bg-softGreen"
-                    }`}
-                  >
+                  <Badge tone={match.locked ? "red" : "green"}>
                     {match.locked ? "Locked" : "Open"}
-                  </span>
+                  </Badge>
                 </div>
 
-                <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+                <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
                   <ScoreInput
                     disabled={match.locked || saving}
                     label={match.homeTeam.name}
                     value={draft?.homeGoals ?? ""}
                     onChange={(value) => updateDraft(match.id, { homeGoals: value })}
                   />
-                  <span className="pb-4 text-sm font-semibold text-secondaryText">-</span>
+                  <span className="pb-5 text-sm font-semibold text-secondaryText">vs</span>
                   <ScoreInput
                     disabled={match.locked || saving}
                     label={match.awayTeam.name}
@@ -174,7 +174,7 @@ export function PredictionEntry({
                 </div>
 
                 {allowBooster ? (
-                  <label className="mt-4 flex min-h-12 items-center gap-3 rounded-md border border-borderSoft bg-card px-4 py-3 text-sm font-medium">
+                  <label className="mt-4 flex min-h-12 items-center gap-3 rounded-md border border-line bg-cardWarm px-4 py-3 text-sm font-medium">
                     <input
                       checked={draft?.booster ?? false}
                       className="h-5 w-5 rounded border-borderSoft text-worldCupBlue focus:ring-worldCupBlue"
@@ -187,27 +187,27 @@ export function PredictionEntry({
                     Booster
                   </label>
                 ) : null}
-              </article>
+              </FixtureCard>
             );
           })}
         </div>
       )}
 
-      <button
-        className="mt-5 min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      <Button
+        className="mt-5 w-full"
         disabled={saving || matches.length === 0}
         type="button"
         onClick={savePredictions}
       >
         {saving ? "Saving..." : "Save predictions"}
-      </button>
+      </Button>
 
       {message ? (
-        <div className="mt-4 rounded-md border border-borderSoft bg-softSky px-4 py-3 text-sm leading-6">
+        <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky px-4 py-3 text-sm leading-6">
           {message}
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }
 
@@ -223,19 +223,14 @@ function ScoreInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block">
-      <span className="block min-h-10 text-sm font-semibold leading-5">{label}</span>
-      <input
-        className="mt-2 h-14 w-full rounded-md border border-borderSoft bg-card px-3 text-center text-2xl font-semibold tabular-nums outline-none transition focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue disabled:bg-[#F4F4EF] disabled:text-secondaryText"
-        disabled={disabled}
-        inputMode="numeric"
-        max={20}
-        min={0}
-        type="number"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </label>
+    <UiScoreInput
+      disabled={disabled}
+      label={label}
+      max={20}
+      min={0}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
   );
 }
 
@@ -245,3 +240,4 @@ function formatKickoff(value: string) {
     timeStyle: "short",
   }).format(new Date(value));
 }
+

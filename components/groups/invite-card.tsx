@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { GroupInviteSummary } from "@/lib/groups/types";
+import { Button, Card } from "@/components/ui/primitives";
 
 export function InviteCard({
   groupId,
@@ -56,40 +57,41 @@ export function InviteCard({
   }
 
   return (
-    <section className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-secondaryText">Season invite</p>
           <h2 className="mt-2 text-2xl font-semibold">Invite link</h2>
         </div>
-        <button
-          className="shrink-0 rounded-sm border border-borderSoft px-4 py-2 text-sm font-semibold transition hover:bg-softSky disabled:cursor-not-allowed disabled:opacity-60"
+        <Button
+          className="shrink-0"
+          variant="ghost"
           disabled={loading}
           type="button"
           onClick={createInvite}
         >
           {invite ? "Refresh" : "Generate"}
-        </button>
+        </Button>
       </div>
 
       {invite ? (
         <div className="mt-5 space-y-3">
-          <div className="rounded-lg border border-borderSoft bg-base p-4">
+          <div className="rounded-lg border border-line bg-cardWarm p-4">
             <p className="text-xs text-secondaryText">Code</p>
             <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.12em]">
               {invite.code}
             </p>
           </div>
-          <div className="break-all rounded-lg border border-borderSoft bg-base p-4 text-sm">
+          <div className="break-all rounded-lg border border-line bg-cardWarm p-4 text-sm">
             {invite.inviteUrl}
           </div>
-          <button
-            className="w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+          <Button
+            className="w-full"
             type="button"
             onClick={copyInvite}
           >
             Copy invite link
-          </button>
+          </Button>
         </div>
       ) : (
         <p className="mt-4 text-sm leading-6 text-secondaryText">
@@ -98,10 +100,10 @@ export function InviteCard({
       )}
 
       {message ? (
-        <div className="mt-4 rounded-md border border-borderSoft bg-softSky px-4 py-3 text-sm">
+        <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky px-4 py-3 text-sm">
           {message}
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }

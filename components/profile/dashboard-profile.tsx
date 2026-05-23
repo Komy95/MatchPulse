@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getFirebaseClientAuth, getFirebaseClientFirestore } from "@/lib/firebase/client";
 import { updateUserProfile } from "@/lib/profile/client";
 import type { UserConsent, UserProfile } from "@/lib/profile/types";
+import { Button, Card, FieldLabel, Input } from "@/components/ui/primitives";
 
 type FormState = {
   locale: string;
@@ -81,35 +82,35 @@ export function DashboardProfile({ uid }: { uid: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+    <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-secondaryText">Signed in as</p>
           <h2 className="mt-1 break-words text-2xl font-semibold">{identity}</h2>
         </div>
-        <button
-          className="shrink-0 rounded-sm border border-borderSoft px-4 py-2 text-sm font-semibold transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2"
+        <Button
+          className="shrink-0"
+          variant="ghost"
           type="button"
           onClick={handleLogout}
         >
           Log out
-        </button>
+        </Button>
       </div>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Locale</span>
-          <input
-            className="w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base"
+          <FieldLabel>Locale</FieldLabel>
+          <Input
             value={form.locale}
             onChange={(event) => setForm({ ...form, locale: event.target.value })}
           />
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Country code</span>
-          <input
-            className="w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base uppercase"
+          <FieldLabel>Country code</FieldLabel>
+          <Input
+            className="uppercase"
             maxLength={2}
             placeholder="US"
             value={form.countryCode}
@@ -118,9 +119,8 @@ export function DashboardProfile({ uid }: { uid: string }) {
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Favorite team IDs</span>
-          <input
-            className="w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base"
+          <FieldLabel>Favorite team IDs</FieldLabel>
+          <Input
             placeholder="usa, mexico"
             value={form.favoriteTeamIds}
             onChange={(event) => setForm({ ...form, favoriteTeamIds: event.target.value })}
@@ -128,9 +128,8 @@ export function DashboardProfile({ uid }: { uid: string }) {
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Followed team IDs</span>
-          <input
-            className="w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base"
+          <FieldLabel>Followed team IDs</FieldLabel>
+          <Input
             placeholder="canada, japan"
             value={form.followedTeamIds}
             onChange={(event) => setForm({ ...form, followedTeamIds: event.target.value })}
@@ -174,13 +173,13 @@ export function DashboardProfile({ uid }: { uid: string }) {
           />
         </div>
 
-        <button
-          className="w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        <Button
+          className="w-full"
           disabled={!profile || saving}
           type="submit"
         >
           {saving ? "Saving..." : "Save profile"}
-        </button>
+        </Button>
       </form>
 
       {message ? (
@@ -188,7 +187,7 @@ export function DashboardProfile({ uid }: { uid: string }) {
           {message}
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Button, Card, FieldLabel, Input } from "@/components/ui/primitives";
 
 export function CreateGroupForm() {
   const router = useRouter();
@@ -37,40 +38,35 @@ export function CreateGroupForm() {
   }
 
   return (
-    <form
-      className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]"
-      onSubmit={handleSubmit}
-    >
-      <label className="block space-y-2">
-        <span className="text-sm font-semibold">Group name</span>
-        <input
-          className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-4 text-base focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
-          maxLength={80}
-          placeholder="Family & Friends"
-          required
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </label>
+    <Card className="shadow-pitch" tone="pitch">
+      <form onSubmit={handleSubmit}>
+        <label className="block space-y-2">
+          <FieldLabel>Group name</FieldLabel>
+          <Input
+            className="py-4"
+            maxLength={80}
+            placeholder="Family & Friends"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </label>
 
-      <div className="mt-4 rounded-lg bg-softSky p-4 text-sm leading-6 text-primaryText">
-        Scoring starts with Hybrid 3-2-1 exact score rules for FIFA World Cup 2026. Group settings
-        and future seasons stay server-managed.
-      </div>
-
-      {error ? (
-        <div className="mt-4 rounded-md border border-canadaRed/20 bg-softRed px-4 py-3 text-sm">
-          {error}
+        <div className="mt-4 rounded-md border border-worldCupBlue/15 bg-softSky p-4 text-sm leading-6 text-primaryText">
+          Scoring starts with Hybrid 3-2-1 exact score rules for FIFA World Cup 2026. Group settings
+          and future seasons stay server-managed.
         </div>
-      ) : null}
 
-      <button
-        className="mt-5 min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={submitting}
-        type="submit"
-      >
-        {submitting ? "Creating..." : "Create group"}
-      </button>
-    </form>
+        {error ? (
+          <div className="mt-4 rounded-md border border-canadaRed/20 bg-softRed px-4 py-3 text-sm">
+            {error}
+          </div>
+        ) : null}
+
+        <Button className="mt-5 w-full" disabled={submitting} type="submit">
+          {submitting ? "Creating..." : "Create group"}
+        </Button>
+      </form>
+    </Card>
   );
 }

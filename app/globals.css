@@ -7,6 +7,7 @@
   background: #fafaf7;
   color: #111111;
   --font-inter: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --focus-ring: #1b4dff;
 }
 
 * {
@@ -21,11 +22,48 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: #fafaf7;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(14, 122, 79, 0.12), transparent 32rem),
+    linear-gradient(180deg, #fbfbf8 0%, #f4f6f1 100%);
   color: #111111;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    @apply border border-borderSoft bg-base text-primaryText caret-worldCupBlue shadow-sm transition placeholder:text-secondaryText/75;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+  textarea:focus,
+  select:focus {
+    @apply border-worldCupBlue outline-none ring-2 ring-worldCupBlue ring-offset-2 ring-offset-base;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):disabled,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):read-only,
+  textarea:disabled,
+  textarea:read-only,
+  select:disabled {
+    @apply cursor-not-allowed border-borderSoft bg-cardWarm text-secondaryText opacity-100 placeholder:text-secondaryText/60;
+  }
+
+  select option {
+    background: #fafaf7;
+    color: #111111;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #111111;
+    caret-color: #1b4dff;
+    box-shadow: 0 0 0 1000px #fafaf7 inset;
+  }
 }

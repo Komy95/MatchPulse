@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { getFirebaseClientAuth } from "@/lib/firebase/client";
+import { Button, FieldLabel, Input } from "@/components/ui/primitives";
 
 type AuthMode = "login" | "register";
 type SubmitState = "google" | "password" | null;
@@ -97,8 +98,8 @@ function AuthForm({ mode }: { mode: AuthMode }) {
 
   return (
     <div className="space-y-6">
-      <button
-        className="min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      <Button
+        className="w-full"
         disabled={submitting !== null}
         type="button"
         onClick={handleGoogleSignIn}
@@ -108,7 +109,7 @@ function AuthForm({ mode }: { mode: AuthMode }) {
           : isRegister
             ? "Create account with Google"
             : "Continue with Google"}
-      </button>
+      </Button>
 
       <div className="flex items-center gap-3 text-sm text-secondaryText">
         <div className="h-px flex-1 bg-borderSoft" />
@@ -119,9 +120,8 @@ function AuthForm({ mode }: { mode: AuthMode }) {
       <form className="space-y-4" onSubmit={handlePasswordSubmit}>
         {isRegister ? (
           <label className="block space-y-2" htmlFor="displayName">
-            <span className="text-sm font-semibold text-primaryText">Name</span>
-            <input
-              className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base text-primaryText shadow-sm transition placeholder:text-secondaryText/75 focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
+            <FieldLabel>Name</FieldLabel>
+            <Input
               autoComplete="name"
               id="displayName"
               placeholder="Alex Morgan"
@@ -133,9 +133,8 @@ function AuthForm({ mode }: { mode: AuthMode }) {
         ) : null}
 
         <label className="block space-y-2" htmlFor="email">
-          <span className="text-sm font-semibold text-primaryText">Email</span>
-          <input
-            className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base text-primaryText shadow-sm transition placeholder:text-secondaryText/75 focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
+          <FieldLabel>Email</FieldLabel>
+          <Input
             autoComplete="email"
             id="email"
             inputMode="email"
@@ -148,9 +147,8 @@ function AuthForm({ mode }: { mode: AuthMode }) {
         </label>
 
         <label className="block space-y-2" htmlFor="password">
-          <span className="text-sm font-semibold text-primaryText">Password</span>
-          <input
-            className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-3 text-base text-primaryText shadow-sm transition focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
+          <FieldLabel>Password</FieldLabel>
+          <Input
             autoComplete={isRegister ? "new-password" : "current-password"}
             id="password"
             minLength={isRegister ? 6 : undefined}
@@ -166,8 +164,9 @@ function AuthForm({ mode }: { mode: AuthMode }) {
           ) : null}
         </label>
 
-        <button
-          className="min-h-14 w-full rounded-md border border-borderSoft bg-card px-5 py-4 text-base font-semibold text-primaryText transition hover:bg-softSky focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        <Button
+          className="w-full"
+          variant="secondary"
           disabled={submitting !== null}
           type="submit"
         >
@@ -178,7 +177,7 @@ function AuthForm({ mode }: { mode: AuthMode }) {
             : isRegister
               ? "Create account with email"
               : "Sign in with email"}
-        </button>
+        </Button>
       </form>
 
       {error ? (

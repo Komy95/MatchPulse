@@ -19,8 +19,8 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-base px-4 py-5 text-primaryText sm:px-6 sm:py-8">
-      <section className="mx-auto w-full max-w-md space-y-5 pb-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_50%_-8%,rgba(14,122,79,0.14),transparent_30rem),linear-gradient(180deg,#FBFBF8_0%,#F1F5EF_100%)] px-4 py-5 text-primaryText sm:px-6 sm:py-8">
+      <section className="mx-auto w-full max-w-lg space-y-5 pb-10">
         <DashboardCommandCenter dashboard={dashboard} />
         <DashboardGroups initialGroups={groups} />
         <DashboardProfile uid={user.uid} />

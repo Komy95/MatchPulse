@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Button, Card, FieldLabel, Input } from "@/components/ui/primitives";
 
 export function JoinGroupForm({ initialCode }: { initialCode: string }) {
   const router = useRouter();
@@ -37,33 +38,28 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
   }
 
   return (
-    <form
-      className="rounded-xl border border-borderSoft bg-card p-6 shadow-[0_18px_60px_rgba(17,17,17,0.06)]"
-      onSubmit={handleSubmit}
-    >
-      <label className="block space-y-2">
-        <span className="text-sm font-semibold">Invite code</span>
-        <input
-          className="min-h-14 w-full rounded-md border-borderSoft bg-base px-4 py-4 font-mono text-xl tracking-[0.12em] uppercase focus:border-worldCupBlue focus:ring-2 focus:ring-worldCupBlue"
-          required
-          value={code}
-          onChange={(event) => setCode(event.target.value.toUpperCase())}
-        />
-      </label>
+    <Card className="shadow-pitch" tone="pitch">
+      <form onSubmit={handleSubmit}>
+        <label className="block space-y-2">
+          <FieldLabel>Invite code</FieldLabel>
+          <Input
+            className="py-4 font-mono text-xl tracking-[0.12em] uppercase"
+            required
+            value={code}
+            onChange={(event) => setCode(event.target.value.toUpperCase())}
+          />
+        </label>
 
-      {error ? (
-        <div className="mt-4 rounded-md border border-canadaRed/20 bg-softRed px-4 py-3 text-sm">
-          {error}
-        </div>
-      ) : null}
+        {error ? (
+          <div className="mt-4 rounded-md border border-canadaRed/20 bg-softRed px-4 py-3 text-sm">
+            {error}
+          </div>
+        ) : null}
 
-      <button
-        className="mt-5 min-h-14 w-full rounded-md bg-worldCupBlue px-5 py-4 text-base font-semibold text-white shadow-[0_10px_24px_rgba(27,77,255,0.18)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-worldCupBlue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={submitting}
-        type="submit"
-      >
-        {submitting ? "Joining..." : "Join group"}
-      </button>
-    </form>
+        <Button className="mt-5 w-full" disabled={submitting} type="submit">
+          {submitting ? "Joining..." : "Join group"}
+        </Button>
+      </form>
+    </Card>
   );
 }
