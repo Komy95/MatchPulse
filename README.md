@@ -84,7 +84,7 @@ cp .env.local.example .env.local
 ```
 
 The included example values target local emulator development and do not contain real secrets.
-The example also sets `FIREBASE_AUTH_EMULATOR_HOST` and `FIRESTORE_EMULATOR_HOST` so server-side Firebase Admin helpers use local emulators instead of production services.
+The example also sets `NEXT_PUBLIC_FIREBASE_USE_EMULATORS`, `FIREBASE_AUTH_EMULATOR_HOST`, and `FIRESTORE_EMULATOR_HOST` so browser Firebase SDK calls and server-side Firebase Admin helpers use local emulators instead of production services.
 
 Start Firebase emulators:
 
@@ -143,6 +143,8 @@ http://localhost:4000
 ## Local Auth and Firestore Emulator Testing
 
 Use `.env.local.example` for emulator-safe local development. The example project ID and Firebase browser config are demo values and must not be replaced with production secrets for local tests.
+
+To run `npm run dev` against the shared Firebase staging project instead of emulators, use the real staging Firebase web app values in `.env.local`, set `APP_ENV=staging`, leave `NEXT_PUBLIC_FIREBASE_USE_EMULATORS=false` or unset, and do not set `FIREBASE_AUTH_EMULATOR_HOST` or `FIRESTORE_EMULATOR_HOST`.
 
 Start the emulators before signing in:
 
@@ -416,12 +418,14 @@ Use `.env.local.example` for local development and `templates/env.example` as th
 Rules:
 
 - `APP_ENV=local` is the default and keeps emulator development permissive.
-- `APP_ENV=staging` and `APP_ENV=production` fail fast when required Firebase public config or the server project ID is missing.
+- Firebase public client config is required in every environment because the browser initializes Firebase Auth on page load.
+- `APP_ENV=staging` and `APP_ENV=production` also fail fast when the server project ID is missing.
 - Do not commit real secrets.
 - Only `NEXT_PUBLIC_*` variables may be exposed to browser code.
 - Use Firebase emulators for local Auth and Firestore development.
 - Use Secret Manager for deployed server secrets.
 - For deployed Firebase Admin SDK usage, prefer Application Default Credentials in the Cloud Run runtime.
+- `NEXT_PUBLIC_FIREBASE_USE_EMULATORS=true` is only for local emulator development. Leave it unset or `false` for staging and production, including local development against the staging project.
 
 Required for local emulator development:
 
@@ -432,6 +436,9 @@ NEXT_PUBLIC_FIREBASE_API_KEY=demo-api-key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=demo-matchpulse.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=matchpulse-local
 NEXT_PUBLIC_FIREBASE_APP_ID=demo-app-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=matchpulse-local.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=000000000000
+NEXT_PUBLIC_FIREBASE_USE_EMULATORS=true
 FIREBASE_PROJECT_ID=matchpulse-local
 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
@@ -447,6 +454,9 @@ NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_USE_EMULATORS=false
 FIREBASE_PROJECT_ID= or GOOGLE_CLOUD_PROJECT=
 SPORTS_PROVIDER=mock or real provider id
 ```

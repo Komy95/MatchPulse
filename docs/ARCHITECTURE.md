@@ -264,7 +264,9 @@ Key rules:
 
 - Never expose server credentials client-side.
 - Only `NEXT_PUBLIC_FIREBASE_*` values may be exposed to the browser.
-- `APP_ENV=local` keeps emulator development permissive; `APP_ENV=staging` and `APP_ENV=production` fail fast when required Firebase values are missing.
+- Firebase public client config is required in every environment because Firebase Auth initializes in the browser.
+- `APP_ENV=local` keeps emulator development permissive; `APP_ENV=staging` and `APP_ENV=production` fail fast when the server project ID is missing.
+- Set `NEXT_PUBLIC_FIREBASE_USE_EMULATORS=true` only for local emulator development.
 - Keep provider API keys and OpenAI keys in Secret Manager for deployed environments.
 - Protect cron/admin routes with `CRON_SECRET`.
 - Use consent mode for non-essential ads and analytics.

@@ -1,7 +1,7 @@
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
-import { env } from "@/lib/env";
+import { env, getFirebaseClientConfig } from "@/lib/env";
 
 let emulatorConnected = false;
 
@@ -12,12 +12,7 @@ export function getFirebaseClientApp(): FirebaseApp {
     return existingApp;
   }
 
-  return initializeApp({
-    apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  });
+  return initializeApp(getFirebaseClientConfig());
 }
 
 export function getFirebaseClientAuth(): Auth {
@@ -41,7 +36,7 @@ function connectClientEmulators(auth: Auth, firestore: Firestore) {
     return;
   }
 
-  if (process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV !== "development" || !env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS) {
     return;
   }
 
