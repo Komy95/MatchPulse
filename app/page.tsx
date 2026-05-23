@@ -54,7 +54,7 @@ export default function HomePage() {
               MatchPulse
             </Link>
             <Link
-              className="rounded-full border border-white/22 bg-white/12 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:bg-white/18 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primaryText"
+              className="rounded-full border border-white/18 bg-[#0B2EA8] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(11,46,168,0.34)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primaryText"
               href="/login"
             >
               Sign in
@@ -79,7 +79,7 @@ export default function HomePage() {
                   Create account
                 </Link>
                 <Link
-                  className="min-h-14 rounded-md border border-white/34 bg-white/86 px-6 py-4 text-center text-base font-semibold text-primaryText shadow-[0_16px_42px_rgba(0,0,0,0.24)] backdrop-blur-md transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primaryText"
+                  className="min-h-14 rounded-md border border-white/18 bg-[#0B2EA8] px-6 py-4 text-center text-base font-semibold text-white shadow-[0_18px_44px_rgba(11,46,168,0.34)] transition hover:bg-[#1742d6] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primaryText"
                   href="/login"
                 >
                   Sign in
