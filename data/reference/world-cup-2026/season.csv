@@ -1,0 +1,2 @@
+seasonId,competitionId,name,year,hosts,startDate,endDate,format,status,sourceId,sourceLastCheckedAt
+fifa-world-cup-2026,fifa-world-cup,FIFA World Cup 2026,2026,"['Canada', 'Mexico', 'United States']",2026-06-11,2026-07-19,"{'teamCount': 48, 'groupCount': 12, 'teamsPerGroup': 4, 'knockoutStartsAt': 'round_of_32', 'advancementRule': 'Top two teams from each group plus the eight best third-placed teams advance to the round of 32'}",scheduled,wiki_main_2026_world_cup,2026-05-23

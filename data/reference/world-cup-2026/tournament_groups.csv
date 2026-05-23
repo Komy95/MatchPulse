@@ -1,0 +1,13 @@
+groupId,seasonId,groupCode,name,startDate,endDate,teamIds,sourceId,sourceLastCheckedAt
+wc2026-group-a,fifa-world-cup-2026,A,Group A,2026-06-11,2026-06-24,wc2026-mexico|wc2026-south-africa|wc2026-south-korea|wc2026-czechia,wiki_group_a,2026-05-23
+wc2026-group-b,fifa-world-cup-2026,B,Group B,2026-06-12,2026-06-24,wc2026-canada|wc2026-bosnia-and-herzegovina|wc2026-qatar|wc2026-switzerland,wiki_group_b,2026-05-23
+wc2026-group-c,fifa-world-cup-2026,C,Group C,2026-06-13,2026-06-24,wc2026-brazil|wc2026-morocco|wc2026-haiti|wc2026-scotland,wiki_group_c,2026-05-23
+wc2026-group-d,fifa-world-cup-2026,D,Group D,2026-06-12,2026-06-25,wc2026-united-states|wc2026-paraguay|wc2026-australia|wc2026-turkey,wiki_group_d,2026-05-23
+wc2026-group-e,fifa-world-cup-2026,E,Group E,2026-06-14,2026-06-25,wc2026-germany|wc2026-curacao|wc2026-ivory-coast|wc2026-ecuador,wiki_group_e,2026-05-23
+wc2026-group-f,fifa-world-cup-2026,F,Group F,2026-06-14,2026-06-25,wc2026-netherlands|wc2026-japan|wc2026-sweden|wc2026-tunisia,wiki_group_f,2026-05-23
+wc2026-group-g,fifa-world-cup-2026,G,Group G,2026-06-15,2026-06-26,wc2026-belgium|wc2026-egypt|wc2026-iran|wc2026-new-zealand,wiki_group_g,2026-05-23
+wc2026-group-h,fifa-world-cup-2026,H,Group H,2026-06-15,2026-06-26,wc2026-spain|wc2026-cape-verde|wc2026-saudi-arabia|wc2026-uruguay,wiki_group_h,2026-05-23
+wc2026-group-i,fifa-world-cup-2026,I,Group I,2026-06-16,2026-06-26,wc2026-france|wc2026-senegal|wc2026-iraq|wc2026-norway,wiki_group_i,2026-05-23
+wc2026-group-j,fifa-world-cup-2026,J,Group J,2026-06-16,2026-06-27,wc2026-argentina|wc2026-algeria|wc2026-austria|wc2026-jordan,wiki_group_j,2026-05-23
+wc2026-group-k,fifa-world-cup-2026,K,Group K,2026-06-17,2026-06-27,wc2026-portugal|wc2026-dr-congo|wc2026-uzbekistan|wc2026-colombia,wiki_group_k,2026-05-23
+wc2026-group-l,fifa-world-cup-2026,L,Group L,2026-06-17,2026-06-27,wc2026-england|wc2026-croatia|wc2026-ghana|wc2026-panama,wiki_group_l,2026-05-23

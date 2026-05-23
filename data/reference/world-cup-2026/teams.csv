@@ -1,0 +1,49 @@
+teamId,seasonId,competitionId,name,shortName,countryCode,fifaCode,confederation,groupCode,groupPosition,status,coachName,flagAssetStatus,sourceId,sourceLastCheckedAt
+wc2026-mexico,fifa-world-cup-2026,fifa-world-cup,Mexico,Mexico,MX,MEX,CONCACAF,A,A1,confirmed,,not_included_unlicensed_safe,wiki_group_a,2026-05-23
+wc2026-south-africa,fifa-world-cup-2026,fifa-world-cup,South Africa,South Africa,ZA,RSA,CAF,A,A2,confirmed,,not_included_unlicensed_safe,wiki_group_a,2026-05-23
+wc2026-south-korea,fifa-world-cup-2026,fifa-world-cup,South Korea,South Korea,KR,KOR,AFC,A,A3,confirmed,,not_included_unlicensed_safe,wiki_group_a,2026-05-23
+wc2026-czechia,fifa-world-cup-2026,fifa-world-cup,Czechia,Czechia,CZ,CZE,UEFA,A,A4,confirmed,,not_included_unlicensed_safe,wiki_group_a,2026-05-23
+wc2026-canada,fifa-world-cup-2026,fifa-world-cup,Canada,Canada,CA,CAN,CONCACAF,B,B1,confirmed,,not_included_unlicensed_safe,wiki_group_b,2026-05-23
+wc2026-bosnia-and-herzegovina,fifa-world-cup-2026,fifa-world-cup,Bosnia and Herzegovina,Bosnia and Herzegovina,BA,BIH,UEFA,B,B2,confirmed,,not_included_unlicensed_safe,wiki_group_b,2026-05-23
+wc2026-qatar,fifa-world-cup-2026,fifa-world-cup,Qatar,Qatar,QA,QAT,AFC,B,B3,confirmed,,not_included_unlicensed_safe,wiki_group_b,2026-05-23
+wc2026-switzerland,fifa-world-cup-2026,fifa-world-cup,Switzerland,Switzerland,CH,SUI,UEFA,B,B4,confirmed,,not_included_unlicensed_safe,wiki_group_b,2026-05-23
+wc2026-brazil,fifa-world-cup-2026,fifa-world-cup,Brazil,Brazil,BR,BRA,CONMEBOL,C,C1,confirmed,,not_included_unlicensed_safe,wiki_group_c,2026-05-23
+wc2026-morocco,fifa-world-cup-2026,fifa-world-cup,Morocco,Morocco,MA,MAR,CAF,C,C2,confirmed,,not_included_unlicensed_safe,wiki_group_c,2026-05-23
+wc2026-haiti,fifa-world-cup-2026,fifa-world-cup,Haiti,Haiti,HT,HAI,CONCACAF,C,C3,confirmed,,not_included_unlicensed_safe,wiki_group_c,2026-05-23
+wc2026-scotland,fifa-world-cup-2026,fifa-world-cup,Scotland,Scotland,GB-SCT,SCO,UEFA,C,C4,confirmed,,not_included_unlicensed_safe,wiki_group_c,2026-05-23
+wc2026-united-states,fifa-world-cup-2026,fifa-world-cup,United States,United States,US,USA,CONCACAF,D,D1,confirmed,,not_included_unlicensed_safe,wiki_group_d,2026-05-23
+wc2026-paraguay,fifa-world-cup-2026,fifa-world-cup,Paraguay,Paraguay,PY,PAR,CONMEBOL,D,D2,confirmed,,not_included_unlicensed_safe,wiki_group_d,2026-05-23
+wc2026-australia,fifa-world-cup-2026,fifa-world-cup,Australia,Australia,AU,AUS,AFC,D,D3,confirmed,,not_included_unlicensed_safe,wiki_group_d,2026-05-23
+wc2026-turkey,fifa-world-cup-2026,fifa-world-cup,Turkey,Turkey,TR,TUR,UEFA,D,D4,confirmed,,not_included_unlicensed_safe,wiki_group_d,2026-05-23
+wc2026-germany,fifa-world-cup-2026,fifa-world-cup,Germany,Germany,DE,GER,UEFA,E,E1,confirmed,,not_included_unlicensed_safe,wiki_group_e,2026-05-23
+wc2026-curacao,fifa-world-cup-2026,fifa-world-cup,Curaçao,Curaçao,CW,CUW,CONCACAF,E,E2,confirmed,,not_included_unlicensed_safe,wiki_group_e,2026-05-23
+wc2026-ivory-coast,fifa-world-cup-2026,fifa-world-cup,Ivory Coast,Ivory Coast,CI,CIV,CAF,E,E3,confirmed,,not_included_unlicensed_safe,wiki_group_e,2026-05-23
+wc2026-ecuador,fifa-world-cup-2026,fifa-world-cup,Ecuador,Ecuador,EC,ECU,CONMEBOL,E,E4,confirmed,,not_included_unlicensed_safe,wiki_group_e,2026-05-23
+wc2026-netherlands,fifa-world-cup-2026,fifa-world-cup,Netherlands,Netherlands,NL,NED,UEFA,F,F1,confirmed,,not_included_unlicensed_safe,wiki_group_f,2026-05-23
+wc2026-japan,fifa-world-cup-2026,fifa-world-cup,Japan,Japan,JP,JPN,AFC,F,F2,confirmed,,not_included_unlicensed_safe,wiki_group_f,2026-05-23
+wc2026-sweden,fifa-world-cup-2026,fifa-world-cup,Sweden,Sweden,SE,SWE,UEFA,F,F3,confirmed,,not_included_unlicensed_safe,wiki_group_f,2026-05-23
+wc2026-tunisia,fifa-world-cup-2026,fifa-world-cup,Tunisia,Tunisia,TN,TUN,CAF,F,F4,confirmed,,not_included_unlicensed_safe,wiki_group_f,2026-05-23
+wc2026-belgium,fifa-world-cup-2026,fifa-world-cup,Belgium,Belgium,BE,BEL,UEFA,G,G1,confirmed,,not_included_unlicensed_safe,wiki_group_g,2026-05-23
+wc2026-egypt,fifa-world-cup-2026,fifa-world-cup,Egypt,Egypt,EG,EGY,CAF,G,G2,confirmed,,not_included_unlicensed_safe,wiki_group_g,2026-05-23
+wc2026-iran,fifa-world-cup-2026,fifa-world-cup,Iran,Iran,IR,IRN,AFC,G,G3,confirmed,,not_included_unlicensed_safe,wiki_group_g,2026-05-23
+wc2026-new-zealand,fifa-world-cup-2026,fifa-world-cup,New Zealand,New Zealand,NZ,NZL,OFC,G,G4,confirmed,,not_included_unlicensed_safe,wiki_group_g,2026-05-23
+wc2026-spain,fifa-world-cup-2026,fifa-world-cup,Spain,Spain,ES,ESP,UEFA,H,H1,confirmed,,not_included_unlicensed_safe,wiki_group_h,2026-05-23
+wc2026-cape-verde,fifa-world-cup-2026,fifa-world-cup,Cape Verde,Cape Verde,CV,CPV,CAF,H,H2,confirmed,,not_included_unlicensed_safe,wiki_group_h,2026-05-23
+wc2026-saudi-arabia,fifa-world-cup-2026,fifa-world-cup,Saudi Arabia,Saudi Arabia,SA,KSA,AFC,H,H3,confirmed,,not_included_unlicensed_safe,wiki_group_h,2026-05-23
+wc2026-uruguay,fifa-world-cup-2026,fifa-world-cup,Uruguay,Uruguay,UY,URU,CONMEBOL,H,H4,confirmed,,not_included_unlicensed_safe,wiki_group_h,2026-05-23
+wc2026-france,fifa-world-cup-2026,fifa-world-cup,France,France,FR,FRA,UEFA,I,I1,confirmed,,not_included_unlicensed_safe,wiki_group_i,2026-05-23
+wc2026-senegal,fifa-world-cup-2026,fifa-world-cup,Senegal,Senegal,SN,SEN,CAF,I,I2,confirmed,,not_included_unlicensed_safe,wiki_group_i,2026-05-23
+wc2026-iraq,fifa-world-cup-2026,fifa-world-cup,Iraq,Iraq,IQ,IRQ,AFC,I,I3,confirmed,,not_included_unlicensed_safe,wiki_group_i,2026-05-23
+wc2026-norway,fifa-world-cup-2026,fifa-world-cup,Norway,Norway,NO,NOR,UEFA,I,I4,confirmed,,not_included_unlicensed_safe,wiki_group_i,2026-05-23
+wc2026-argentina,fifa-world-cup-2026,fifa-world-cup,Argentina,Argentina,AR,ARG,CONMEBOL,J,J1,confirmed,,not_included_unlicensed_safe,wiki_group_j,2026-05-23
+wc2026-algeria,fifa-world-cup-2026,fifa-world-cup,Algeria,Algeria,DZ,ALG,CAF,J,J2,confirmed,,not_included_unlicensed_safe,wiki_group_j,2026-05-23
+wc2026-austria,fifa-world-cup-2026,fifa-world-cup,Austria,Austria,AT,AUT,UEFA,J,J3,confirmed,,not_included_unlicensed_safe,wiki_group_j,2026-05-23
+wc2026-jordan,fifa-world-cup-2026,fifa-world-cup,Jordan,Jordan,JO,JOR,AFC,J,J4,confirmed,,not_included_unlicensed_safe,wiki_group_j,2026-05-23
+wc2026-portugal,fifa-world-cup-2026,fifa-world-cup,Portugal,Portugal,PT,POR,UEFA,K,K1,confirmed,,not_included_unlicensed_safe,wiki_group_k,2026-05-23
+wc2026-dr-congo,fifa-world-cup-2026,fifa-world-cup,DR Congo,DR Congo,CD,COD,CAF,K,K2,confirmed,,not_included_unlicensed_safe,wiki_group_k,2026-05-23
+wc2026-uzbekistan,fifa-world-cup-2026,fifa-world-cup,Uzbekistan,Uzbekistan,UZ,UZB,AFC,K,K3,confirmed,,not_included_unlicensed_safe,wiki_group_k,2026-05-23
+wc2026-colombia,fifa-world-cup-2026,fifa-world-cup,Colombia,Colombia,CO,COL,CONMEBOL,K,K4,confirmed,,not_included_unlicensed_safe,wiki_group_k,2026-05-23
+wc2026-england,fifa-world-cup-2026,fifa-world-cup,England,England,GB-ENG,ENG,UEFA,L,L1,confirmed,,not_included_unlicensed_safe,wiki_group_l,2026-05-23
+wc2026-croatia,fifa-world-cup-2026,fifa-world-cup,Croatia,Croatia,HR,CRO,UEFA,L,L2,confirmed,,not_included_unlicensed_safe,wiki_group_l,2026-05-23
+wc2026-ghana,fifa-world-cup-2026,fifa-world-cup,Ghana,Ghana,GH,GHA,CAF,L,L3,confirmed,,not_included_unlicensed_safe,wiki_group_l,2026-05-23
+wc2026-panama,fifa-world-cup-2026,fifa-world-cup,Panama,Panama,PA,PAN,CONCACAF,L,L4,confirmed,,not_included_unlicensed_safe,wiki_group_l,2026-05-23

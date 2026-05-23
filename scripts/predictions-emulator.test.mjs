@@ -103,30 +103,30 @@ test("local reference seed creates canonical documents and is idempotent", async
   assert.equal(secondRun, true);
   assert.equal(competitionSnap.exists, true);
   assert.equal(seasonSnap.exists, true);
-  assert.equal(teamsSnap.size, 2);
-  assert.equal(matchesSnap.size, 1);
-  assert.equal(tournamentGroupsSnap.size, 1);
-  assert.equal(squadsSnap.size, 2);
-  assert.equal(playersSnap.size, 2);
-  assert.equal(bracketNodesSnap.size, 1);
+  assert.equal(teamsSnap.size, 48);
+  assert.equal(matchesSnap.size, 72);
+  assert.equal(tournamentGroupsSnap.size, 12);
+  assert.equal(squadsSnap.size, 48);
+  assert.equal(playersSnap.size, 0);
+  assert.equal(bracketNodesSnap.size, 32);
 
-  const match = matchesSnap.docs[0].data();
-  assert.equal(typeof match.kickoffAt, "string");
-  assert.equal(typeof match.lockAt, "string");
-  assert.equal(isUtcTimestamp(match.kickoffAt), true);
-  assert.equal(isUtcTimestamp(match.lockAt), true);
+  const match = matchesSnap.docs.find((doc) => doc.id === "wc2026-ga-01")?.data();
+  assert.ok(match);
+  assert.equal(match.kickoffAt, null);
+  assert.equal(match.lockAt, null);
   assert.equal(match.competitionId, "fifa-world-cup");
   assert.equal(match.seasonId, "world-cup-2026");
   assert.equal(match.status, "SCHEDULED");
   assert.equal(match.lifecycleStatus, "scheduled");
-  assert.equal(match.stage, "GROUP_STAGE");
+  assert.equal(match.stage, "group");
   assert.equal(match.groupCode, "A");
   assert.equal(typeof match.homeTeamId, "string");
   assert.equal(typeof match.awayTeamId, "string");
 
-  const bracketNode = bracketNodesSnap.docs[0].data();
+  const bracketNode = bracketNodesSnap.docs.find((doc) => doc.id === "wc2026-round_of_32-01")?.data();
+  assert.ok(bracketNode);
   assert.equal(bracketNode.status, "unresolved");
-  assert.equal(bracketNode.homeSource.type, "group-rank");
+  assert.equal(bracketNode.homeSource, "TBD_R32_1_home");
 });
 
 test("prediction save after lock is rejected and does not write", async () => {
@@ -380,24 +380,24 @@ test("published reference tournament data is public-readable and client writes a
   const { app, db } = await signedInClient("reference-reader");
 
   const teamSnap = await getDoc(
-    doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/teams/mock-usa"),
+    doc(db, "competitions/fifa-world-cup/seasons/world-cup-2026/teams/wc2026-mexico"),
   );
   const groupSnap = await getDoc(
     doc(
       db,
-      "competitions/fifa-world-cup/seasons/world-cup-2026/tournamentGroups/fifa-world-cup-world-cup-2026-group-a",
+      "competitions/fifa-world-cup/seasons/world-cup-2026/tournamentGroups/wc2026-group-a",
     ),
   );
   const squadSnap = await getDoc(
     doc(
       db,
-      "competitions/fifa-world-cup/seasons/world-cup-2026/squads/fifa-world-cup-world-cup-2026-squad-mock-usa",
+      "competitions/fifa-world-cup/seasons/world-cup-2026/squads/wc2026-mexico-squad",
     ),
   );
   const bracketSnap = await getDoc(
     doc(
       db,
-      "competitions/fifa-world-cup/seasons/world-cup-2026/bracketNodes/fifa-world-cup-world-cup-2026-bracket-round-of-32-01",
+      "competitions/fifa-world-cup/seasons/world-cup-2026/bracketNodes/wc2026-round_of_32-01",
     ),
   );
 
@@ -677,8 +677,4 @@ async function importSeedScript() {
   const url = `${pathToFileURL("scripts/seed-world-cup-reference-data.mjs").href}?run=${Date.now()}-${Math.random()}`;
   await import(url);
   return true;
-}
-
-function isUtcTimestamp(value) {
-  return typeof value === "string" && value.endsWith("Z") && Number.isFinite(Date.parse(value));
 }
