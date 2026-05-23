@@ -29,7 +29,7 @@ export function JoinGroupForm({ initialCode }: { initialCode: string }) {
         throw new Error(payload.error?.message ?? "Invite code is invalid.");
       }
 
-      router.replace(`/groups/${payload.membership.groupId}`);
+      router.replace(`/groups/${payload.membership.groupId}?joined=1`);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Invite code is invalid.");

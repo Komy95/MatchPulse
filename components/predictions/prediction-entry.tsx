@@ -147,6 +147,7 @@ export function PredictionEntry({
           ) : null}
           {matches.map((match) => {
             const draft = drafts[match.id];
+            const status = predictionStatus(match);
 
             return (
               <FixtureCard key={match.id}>
@@ -163,9 +164,7 @@ export function PredictionEntry({
                       {match.groupCode ? ` - Group ${match.groupCode}` : ""}
                     </p>
                   </div>
-                  <Badge tone={match.locked ? "red" : "green"}>
-                    {match.locked ? "Locked" : "Open"}
-                  </Badge>
+                  <Badge tone={status.tone}>{status.label}</Badge>
                 </div>
 
                 <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
@@ -198,6 +197,8 @@ export function PredictionEntry({
                     Booster
                   </label>
                 ) : null}
+
+                <PredictionResultSummary match={match} />
               </FixtureCard>
             );
           })}
@@ -220,6 +221,63 @@ export function PredictionEntry({
       ) : null}
     </Card>
   );
+}
+
+function PredictionResultSummary({ match }: { match: MatchPredictionSummary }) {
+  if (!match.prediction) {
+    return (
+      <div className="mt-4 rounded-md border border-borderSoft bg-cardWarm px-4 py-3 text-sm leading-6 text-secondaryText">
+        No prediction saved yet.
+      </div>
+    );
+  }
+
+  const result = match.result;
+
+  return (
+    <div className="mt-4 rounded-md border border-line bg-cardWarm p-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <ScoreSummary label="Your pick" value={`${match.prediction.homeGoals}-${match.prediction.awayGoals}`} />
+        <ScoreSummary
+          label="Actual"
+          value={
+            result?.actualHomeGoals != null && result.actualAwayGoals != null
+              ? `${result.actualHomeGoals}-${result.actualAwayGoals}`
+              : "Pending"
+          }
+        />
+        <ScoreSummary label="Points" value={result?.points != null ? `${result.points}` : "-"} />
+      </div>
+      <p className="mt-3 text-sm leading-6 text-secondaryText">
+        {result?.reason ?? "Points will be explained here after the match is scored."}
+      </p>
+    </div>
+  );
+}
+
+function ScoreSummary({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase text-mutedText">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function predictionStatus(match: MatchPredictionSummary): { label: string; tone: "blue" | "green" | "gold" | "red" } {
+  if (match.result?.status === "SCORED") {
+    return { label: "Scored", tone: "green" };
+  }
+
+  if (match.status === "FINISHED" || match.result?.status === "FINISHED_UNSCORED") {
+    return { label: "Finished", tone: "gold" };
+  }
+
+  if (match.locked) {
+    return { label: "Locked", tone: "red" };
+  }
+
+  return { label: "Open", tone: "blue" };
 }
 
 function ScoreInput({

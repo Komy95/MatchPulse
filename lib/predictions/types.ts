@@ -1,5 +1,6 @@
 import type { Timestamp } from "firebase-admin/firestore";
 import type { MatchStatus, NormalizedVenue } from "@/lib/sports-data/domain";
+import type { PredictionResultFeedback } from "@/lib/predictions/result-feedback";
 
 export type PredictionMode = "EXACT_SCORE";
 export type PredictionStatus = "SAVED";
@@ -52,6 +53,7 @@ export type MatchPredictionSummary = {
   stage: string;
   groupCode: string | null;
   venue: NormalizedVenue | null;
+  result: PredictionResultFeedback | null;
   homeTeam: TeamSummary;
   awayTeam: TeamSummary;
   prediction: {

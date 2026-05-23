@@ -2,6 +2,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { ApiError } from "@/lib/api/errors";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { evaluatePredictionUpsertPolicy } from "@/lib/predictions/policy";
+import { buildPredictionResultFeedback } from "@/lib/predictions/result-feedback";
 import type { BulkPredictionInput } from "@/lib/predictions/validation";
 import type {
   MatchPredictionSummary,
@@ -10,6 +11,7 @@ import type {
   TeamSummary,
 } from "@/lib/predictions/types";
 import type { GroupMemberDocument, GroupSeasonDocument } from "@/lib/groups/types";
+import type { MatchScore, MatchLifecycleStatus } from "@/lib/sports-data/domain";
 import type { MatchStatus, NormalizedVenue } from "@/lib/sports-data/domain";
 import type { AuthenticatedUserContext } from "@/lib/auth/user-context";
 
@@ -21,9 +23,13 @@ type ReferenceMatchDocument = {
   kickoffAt: string;
   lockAt: string;
   status: MatchStatus;
+  lifecycleStatus?: MatchLifecycleStatus;
   stage: string;
   groupCode?: string | null;
   venue?: NormalizedVenue | null;
+  score?: MatchScore | null;
+  homeScore90?: number | null;
+  awayScore90?: number | null;
 };
 
 type ReferenceTeamDocument = {
@@ -80,6 +86,7 @@ export async function listGroupSeasonMatchesWithPredictions({
       serializeMatch({
         id: doc.id,
         match: doc.data() as ReferenceMatchDocument,
+        scoringPreset: groupSeason.scoringPreset,
         teams,
         prediction: predictionsByMatchId.get(doc.id) ?? null,
       }),
@@ -290,11 +297,13 @@ function predictionRef(groupId: string, groupSeasonId: string, predictionId: str
 function serializeMatch({
   id,
   match,
+  scoringPreset,
   teams,
   prediction,
 }: {
   id: string;
   match: ReferenceMatchDocument;
+  scoringPreset: GroupSeasonDocument["scoringPreset"];
   teams: Map<string, TeamSummary>;
   prediction: PredictionDocument | null;
 }): MatchPredictionSummary {
@@ -307,6 +316,11 @@ function serializeMatch({
     stage: match.stage,
     groupCode: match.groupCode ?? null,
     venue: match.venue ?? null,
+    result: buildPredictionResultFeedback({
+      match,
+      prediction,
+      scoringPreset,
+    }),
     homeTeam: teams.get(match.homeTeamId) ?? missingTeam(match.homeTeamId),
     awayTeam: teams.get(match.awayTeamId) ?? missingTeam(match.awayTeamId),
     prediction: prediction

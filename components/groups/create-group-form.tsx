@@ -29,7 +29,7 @@ export function CreateGroupForm() {
         throw new Error(payload.error?.message ?? "Group could not be created.");
       }
 
-      router.replace(`/groups/${payload.group.id}`);
+      router.replace(`/groups/${payload.group.id}?created=1`);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Group could not be created.");

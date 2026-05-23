@@ -14,10 +14,12 @@ export function GroupSeasonLeaderboard({
   groupId,
   groupSeasonId,
   canRecalculate,
+  previewLimit,
 }: {
   groupId: string;
   groupSeasonId: string;
   canRecalculate: boolean;
+  previewLimit?: number;
 }) {
   const [snapshot, setSnapshot] = useState<LeaderboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ export function GroupSeasonLeaderboard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-pitchGreen">Leaderboard</p>
-          <h2 className="mt-2 text-2xl font-semibold">Group standings</h2>
+          <h2 className="mt-2 text-2xl font-semibold">Leaderboard preview</h2>
         </div>
         {snapshot ? <Badge tone="blue">{snapshot.entries.length} ranked</Badge> : null}
       </div>
@@ -119,7 +121,7 @@ export function GroupSeasonLeaderboard({
           {snapshot.entries.length === 0 ? (
             <EmptyLeaderboard />
           ) : (
-            snapshot.entries.map((entry) => (
+            snapshot.entries.slice(0, previewLimit).map((entry) => (
               <article className="rounded-lg border border-line bg-cardWarm p-4" key={entry.userId}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-worldCupBlue/20 bg-softSky text-base font-semibold tabular-nums text-worldCupBlue">

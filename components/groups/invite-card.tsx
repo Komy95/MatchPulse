@@ -52,8 +52,8 @@ export function InviteCard({
       return;
     }
 
-    await navigator.clipboard?.writeText(invite.inviteUrl);
-    setMessage("Invite link copied.");
+    await navigator.clipboard?.writeText(shareText(invite));
+    setMessage("Invite text copied.");
   }
 
   return (
@@ -61,7 +61,7 @@ export function InviteCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-secondaryText">Season invite</p>
-          <h2 className="mt-2 text-2xl font-semibold">Invite link</h2>
+          <h2 className="mt-2 text-2xl font-semibold">Invite friends</h2>
         </div>
         <Button
           className="shrink-0"
@@ -85,17 +85,20 @@ export function InviteCard({
           <div className="break-all rounded-lg border border-line bg-cardWarm p-4 text-sm">
             {invite.inviteUrl}
           </div>
+          <div className="rounded-lg border border-worldCupBlue/15 bg-softSky p-4 text-sm leading-6 text-primaryText">
+            {shareText(invite)}
+          </div>
           <Button
             className="w-full"
             type="button"
             onClick={copyInvite}
           >
-            Copy invite link
+            Copy share text
           </Button>
         </div>
       ) : (
         <p className="mt-4 text-sm leading-6 text-secondaryText">
-          Generate a season-scoped invite code for this group season.
+          Generate a season-scoped invite so friends can join this private prediction pool.
         </p>
       )}
 
@@ -106,4 +109,8 @@ export function InviteCard({
       ) : null}
     </Card>
   );
+}
+
+function shareText(invite: GroupInviteSummary) {
+  return `Join my MatchPulse World Cup prediction pool. Use code ${invite.code}: ${invite.inviteUrl}`;
 }
