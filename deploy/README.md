@@ -81,6 +81,8 @@ Fill these values from the Firebase web app config for `matchpulse-staging-da54c
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_APP_URL`
 
+Cloud Build passes these public values into `docker build` as build args because Next.js embeds `NEXT_PUBLIC_*` values during `npm run build`. Replace every `<...>` placeholder before deploying; Cloud Build rejects placeholder values before starting Docker.
+
 Do not add local emulator values to staging:
 
 - `NEXT_PUBLIC_FIREBASE_USE_EMULATORS`
@@ -107,6 +109,14 @@ Then submit the build:
 gcloud builds submit \
   --config cloudbuild.yaml \
   --substitutions "_REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml,_TAG=latest"
+```
+
+PowerShell equivalent:
+
+```powershell
+gcloud builds submit `
+  --config=cloudbuild.yaml `
+  --substitutions="_REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml,_TAG=latest"
 ```
 
 Get the deployed Cloud Run URL:
@@ -146,6 +156,14 @@ Next.js public env values are used during `npm run build`, so redeploy after `NE
 gcloud builds submit \
   --config cloudbuild.yaml \
   --substitutions "_REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml,_TAG=latest"
+```
+
+PowerShell equivalent:
+
+```powershell
+gcloud builds submit `
+  --config=cloudbuild.yaml `
+  --substitutions="_REGION=europe-west3,_SERVICE=matchpulse-stage,_REPOSITORY=matchpulse,_IMAGE=matchpulse-web,_ENV_FILE=deploy/staging.env.yaml,_TAG=latest"
 ```
 
 ## 10. Check Health

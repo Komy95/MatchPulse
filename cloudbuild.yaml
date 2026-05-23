@@ -28,20 +28,36 @@ steps:
             echo "Missing $${key} in $${ENV_FILE}" >&2
             exit 1
           fi
+          case "$${value}" in
+            \<*\>)
+              echo "Placeholder value for $${key} must be replaced in $${ENV_FILE}" >&2
+              exit 1
+              ;;
+          esac
           printf '%s' "$${value}"
         }
 
+        NEXT_PUBLIC_APP_URL="$(get_env NEXT_PUBLIC_APP_URL)"
+        NEXT_PUBLIC_FIREBASE_API_KEY="$(get_env NEXT_PUBLIC_FIREBASE_API_KEY)"
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="$(get_env NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN)"
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID="$(get_env NEXT_PUBLIC_FIREBASE_PROJECT_ID)"
+        NEXT_PUBLIC_FIREBASE_APP_ID="$(get_env NEXT_PUBLIC_FIREBASE_APP_ID)"
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="$(get_env NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET)"
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="$(get_env NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID)"
+        GOOGLE_CLOUD_PROJECT="$(get_env GOOGLE_CLOUD_PROJECT)"
+        FIREBASE_PROJECT_ID="$(get_env FIREBASE_PROJECT_ID)"
+
         docker build \
           --build-arg APP_ENV="$(get_env APP_ENV)" \
-          --build-arg NEXT_PUBLIC_APP_URL="$(get_env NEXT_PUBLIC_APP_URL)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="$(get_env NEXT_PUBLIC_FIREBASE_API_KEY)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="$(get_env NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="$(get_env NEXT_PUBLIC_FIREBASE_PROJECT_ID)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="$(get_env NEXT_PUBLIC_FIREBASE_APP_ID)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="$(get_env NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET)" \
-          --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="$(get_env NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID)" \
-          --build-arg GOOGLE_CLOUD_PROJECT="$(get_env GOOGLE_CLOUD_PROJECT)" \
-          --build-arg FIREBASE_PROJECT_ID="$(get_env FIREBASE_PROJECT_ID)" \
+          --build-arg NEXT_PUBLIC_APP_URL="$${NEXT_PUBLIC_APP_URL}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="$${NEXT_PUBLIC_FIREBASE_API_KEY}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="$${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="$${NEXT_PUBLIC_FIREBASE_PROJECT_ID}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="$${NEXT_PUBLIC_FIREBASE_APP_ID}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="$${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}" \
+          --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="$${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}" \
+          --build-arg GOOGLE_CLOUD_PROJECT="$${GOOGLE_CLOUD_PROJECT}" \
+          --build-arg FIREBASE_PROJECT_ID="$${FIREBASE_PROJECT_ID}" \
           --build-arg SPORTS_PROVIDER="$(get_env SPORTS_PROVIDER)" \
           --build-arg SIM_DEFAULT_RUNS="$(get_env SIM_DEFAULT_RUNS)" \
           --build-arg PUBLIC_SIM_RUNS="$(get_env PUBLIC_SIM_RUNS)" \
