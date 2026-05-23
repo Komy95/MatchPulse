@@ -8,6 +8,7 @@ import type {
 
 export interface SportsDataWriter {
   upsertSportsDataBatch(batch: NormalizedSportsDataBatch): Promise<SportsDataIngestionSummary>;
+  upsertMatchUpdates(matches: NormalizedMatch[]): Promise<void>;
 }
 
 export class FirestoreSportsDataWriter implements SportsDataWriter {
@@ -37,6 +38,29 @@ export class FirestoreSportsDataWriter implements SportsDataWriter {
     await writeBatch.commit();
 
     return summarizeBatch(batch);
+  }
+
+  async upsertMatchUpdates(matches: NormalizedMatch[]): Promise<void> {
+    if (matches.length === 0) {
+      return;
+    }
+
+    const firestore = getFirebaseAdminFirestore();
+    const writeBatch = firestore.batch();
+
+    for (const match of matches) {
+      const matchRef = firestore
+        .collection("competitions")
+        .doc(match.competitionId)
+        .collection("seasons")
+        .doc(match.seasonId)
+        .collection("matches")
+        .doc(match.id);
+
+      writeBatch.set(matchRef, toMatchFirestore(match), { merge: true });
+    }
+
+    await writeBatch.commit();
   }
 }
 

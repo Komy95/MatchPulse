@@ -1,7 +1,7 @@
 import type { Timestamp } from "firebase-admin/firestore";
 import type { ScoringPreset } from "@/lib/scoring/domain";
 
-export type LeaderboardGeneratedBy = "SERVER_ROUTE" | "TRUSTED_JOB";
+export type LeaderboardGeneratedBy = "SERVER_ROUTE" | "TRUSTED_JOB" | "SYSTEM_EVENT";
 
 export type LeaderboardEntry = {
   userId: string;

@@ -17,7 +17,7 @@ type MockTeam = {
   groupCode?: string;
 };
 
-type MockMatch = {
+export type MockMatch = {
   externalId: string;
   homeExternalId: string;
   awayExternalId: string;
@@ -57,6 +57,7 @@ export type MockProviderPayload = {
 
 export class MockSportsDataProvider implements SportsDataProvider {
   readonly id = "mock" as const;
+  private readonly mockMatchStates = new Map<string, Partial<MockMatch>>();
 
   constructor(
     private readonly payload: MockProviderPayload = createDefaultMockWorldCupPayload(),
@@ -66,7 +67,48 @@ export class MockSportsDataProvider implements SportsDataProvider {
   async fetchCompetitionSeason(
     request: SportsDataIngestionRequest,
   ): Promise<NormalizedSportsDataBatch> {
-    return mapMockProviderPayload(this.payload, request, this.fetchedAt);
+    return mapMockProviderPayload(this.payloadWithOverrides(), request, this.fetchedAt);
+  }
+
+  async fetchLiveMatches(request: SportsDataIngestionRequest): Promise<NormalizedMatch[]> {
+    const batch = mapMockProviderPayload(this.payloadWithOverrides(), request, this.fetchedAt);
+
+    return batch.matches.filter((match) => isLiveUpdateStatus(match.status));
+  }
+
+  async fetchMatchDetails(
+    request: SportsDataIngestionRequest,
+    externalMatchId: string,
+  ): Promise<NormalizedMatch> {
+    const batch = mapMockProviderPayload(this.payloadWithOverrides(), request, this.fetchedAt);
+    const match = batch.matches.find((candidate) => candidate.provider.externalId === externalMatchId);
+
+    if (!match) {
+      throw new ProviderDataError(`Mock match not found: ${externalMatchId}`);
+    }
+
+    return match;
+  }
+
+  setMockMatchState(externalId: string, overrides: Partial<MockMatch>): void {
+    this.mockMatchStates.set(externalId, {
+      ...this.mockMatchStates.get(externalId),
+      ...overrides,
+    });
+  }
+
+  private payloadWithOverrides(): MockProviderPayload {
+    if (this.mockMatchStates.size === 0) {
+      return this.payload;
+    }
+
+    return {
+      ...this.payload,
+      matches: this.payload.matches.map((match) => ({
+        ...match,
+        ...this.mockMatchStates.get(match.externalId),
+      })),
+    };
   }
 }
 
@@ -185,10 +227,12 @@ function mapMockMatch(
       awayScoreFinal: score.awayScoreFinal ?? null,
     },
     provider: providerMetadata(match.externalId, fetchedAt, match.providerUpdatedAt),
-    freshness: {
-      ...freshness,
-      providerUpdatedAt: match.providerUpdatedAt,
-    },
+    freshness: match.providerUpdatedAt
+      ? {
+          ...freshness,
+          providerUpdatedAt: match.providerUpdatedAt,
+        }
+      : freshness,
     updatedAt: fetchedAt,
   };
 }
@@ -224,6 +268,10 @@ export function normalizeMockMatchStatus(status: string): MatchStatus {
   }
 }
 
+function isLiveUpdateStatus(status: MatchStatus) {
+  return status === "LIVE" || status === "HALFTIME" || status === "FINISHED";
+}
+
 function providerMetadata(
   externalId: string,
   fetchedAt: string,
@@ -242,7 +290,7 @@ function providerMetadata(
     externalId,
     sourceName: "MatchPulse local mock provider",
     fetchedAt,
-    providerUpdatedAt,
+    ...(providerUpdatedAt ? { providerUpdatedAt } : {}),
   };
 }
 

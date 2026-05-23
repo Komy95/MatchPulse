@@ -23,6 +23,14 @@ function loadModule(specifier) {
     };
   }
 
+  if (specifier === "@/lib/events") {
+    return {
+      eventBus: {
+        emit() {},
+      },
+    };
+  }
+
   const file = moduleFiles.get(specifier);
   if (!file) {
     throw new Error(`Unsupported test module import: ${specifier}`);
@@ -148,6 +156,17 @@ class InMemorySportsDataWriter {
 
     return summarizeBatch(batch);
   }
+
+  async upsertMatchUpdates(matches) {
+    this.writeCount += 1;
+
+    for (const match of matches) {
+      this.documents.set(
+        `competitions/${match.competitionId}/seasons/${match.seasonId}/matches/${match.id}`,
+        match,
+      );
+    }
+  }
 }
 
 test("mock provider maps raw provider data into normalized models", async () => {
@@ -218,6 +237,50 @@ test("match status normalization covers provider status variants", () => {
   assert.equal(normalizeMockMatchStatus("HALF TIME"), "HALFTIME");
   assert.equal(normalizeMockMatchStatus("FT"), "FINISHED");
   assert.equal(normalizeMockMatchStatus("canceled"), "CANCELLED");
+});
+
+test("mock provider live updates include live, halftime, and finished matches only", async () => {
+  const provider = new MockSportsDataProvider(
+    basePayload({
+      matches: [
+        {
+          externalId: "match-001",
+          homeExternalId: "usa",
+          awayExternalId: "can",
+          kickoffAt: "2026-06-12T20:00:00.000Z",
+          status: "scheduled",
+          stage: "GROUP_STAGE",
+        },
+      ],
+    }),
+    "2026-05-22T12:00:00.000Z",
+  );
+
+  assert.equal((await provider.fetchLiveMatches(request)).length, 0);
+
+  provider.setMockMatchState("match-001", {
+    status: "LIVE",
+    score: {
+      homeScore90: 1,
+      awayScore90: 0,
+    },
+  });
+
+  const liveMatches = await provider.fetchLiveMatches(request);
+
+  assert.equal(liveMatches.length, 1);
+  assert.equal(liveMatches[0].status, "LIVE");
+  assert.equal(liveMatches[0].score.homeScore90, 1);
+});
+
+test("mock provider resolves match details by provider external ID", async () => {
+  const provider = new MockSportsDataProvider(basePayload(), "2026-05-22T12:00:00.000Z");
+  const match = await provider.fetchMatchDetails(request, "match-001");
+
+  assert.equal(match.provider.externalId, "match-001");
+  assert.equal(match.status, "FINISHED");
+
+  await assert.rejects(() => provider.fetchMatchDetails(request, "missing-match"), /not found/);
 });
 
 test("invalid provider data is rejected before persistence", async () => {

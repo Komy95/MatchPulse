@@ -1,4 +1,5 @@
 import type {
+  NormalizedMatch,
   NormalizedSportsDataBatch,
   SportsDataIngestionRequest,
   SportsDataProviderId,
@@ -9,6 +10,11 @@ export interface SportsDataProvider {
   fetchCompetitionSeason(
     request: SportsDataIngestionRequest,
   ): Promise<NormalizedSportsDataBatch>;
+  fetchLiveMatches(request: SportsDataIngestionRequest): Promise<NormalizedMatch[]>;
+  fetchMatchDetails(
+    request: SportsDataIngestionRequest,
+    externalMatchId: string,
+  ): Promise<NormalizedMatch>;
 }
 
 export class ProviderDataError extends Error {

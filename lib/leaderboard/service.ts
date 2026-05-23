@@ -1,4 +1,4 @@
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type DocumentReference } from "firebase-admin/firestore";
 import { ApiError } from "@/lib/api/errors";
 import { getFirebaseAdminFirestore } from "@/lib/firebase/admin";
 import { buildLeaderboardSnapshot, type LeaderboardMatchInput } from "@/lib/leaderboard/domain";
@@ -51,13 +51,63 @@ export async function recalculateGroupSeasonLeaderboard({
   userId: string;
   generatedBy?: LeaderboardGeneratedBy;
 }) {
-  const firestore = getFirebaseAdminFirestore();
   const { groupRef, groupSeasonRef, groupSeason } = await requireGroupSeasonRole({
     groupId,
     groupSeasonId,
     userId,
     roles: ["OWNER", "ADMIN"],
   });
+
+  return recalculateGroupSeasonLeaderboardSnapshot({
+    groupId,
+    groupSeasonId,
+    groupRef,
+    groupSeasonRef,
+    groupSeason,
+    generatedBy,
+  });
+}
+
+export async function recalculateGroupSeasonLeaderboardSystem({
+  groupId,
+  groupSeasonId,
+  generatedBy = "SYSTEM_EVENT",
+}: {
+  groupId: string;
+  groupSeasonId: string;
+  generatedBy?: LeaderboardGeneratedBy;
+}) {
+  const { groupRef, groupSeasonRef, groupSeason } = await requireSystemGroupSeason({
+    groupId,
+    groupSeasonId,
+  });
+
+  return recalculateGroupSeasonLeaderboardSnapshot({
+    groupId,
+    groupSeasonId,
+    groupRef,
+    groupSeasonRef,
+    groupSeason,
+    generatedBy,
+  });
+}
+
+async function recalculateGroupSeasonLeaderboardSnapshot({
+  groupId,
+  groupSeasonId,
+  groupRef,
+  groupSeasonRef,
+  groupSeason,
+  generatedBy,
+}: {
+  groupId: string;
+  groupSeasonId: string;
+  groupRef: DocumentReference;
+  groupSeasonRef: DocumentReference;
+  groupSeason: GroupSeasonDocument;
+  generatedBy: LeaderboardGeneratedBy;
+}) {
+  const firestore = getFirebaseAdminFirestore();
   const seasonRef = firestore
     .collection("competitions")
     .doc(groupSeason.competitionId)
@@ -173,6 +223,29 @@ async function requireGroupSeasonRole({
   }
 
   return context;
+}
+
+async function requireSystemGroupSeason({
+  groupId,
+  groupSeasonId,
+}: {
+  groupId: string;
+  groupSeasonId: string;
+}) {
+  const firestore = getFirebaseAdminFirestore();
+  const groupRef = firestore.collection("groups").doc(groupId);
+  const groupSeasonRef = groupRef.collection("seasons").doc(groupSeasonId);
+  const groupSeasonSnap = await groupSeasonRef.get();
+
+  if (!groupSeasonSnap.exists) {
+    throw new ApiError("GROUP_SEASON_NOT_FOUND", "Group season not found.");
+  }
+
+  return {
+    groupRef,
+    groupSeasonRef,
+    groupSeason: groupSeasonSnap.data() as GroupSeasonDocument,
+  };
 }
 
 function serializePredictionInput(prediction: PredictionDocument) {
